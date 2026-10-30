@@ -79,9 +79,17 @@ Open `web/js/secrets.js` in a text editor:
 
 - `tmdbKey`: your TMDB API key, from [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api)
   (request a free developer key; the "API Key" is the short one). Without it, every row says "Couldn't load".
-- `addons`, `provider`, `playlists`, `sportsRelay`: your sources. Each one is explained in the file and in
-  [Sources](docs/streaming-provider.md). Without `addons` or a `provider`, playing a title says
-  "No sources set up".
+- Your sources (all optional, but without `addons` or a `provider`, playing a title says "No sources set up"):
+  - `addons`: Stremio add-on links, the same `…/manifest.json` links you'd paste into Stremio. Torrent
+    results download and play on the TV; direct links play as they are.
+  - `provider`: the address of a stream server you run on your network that speaks
+    [OMSS](https://github.com/omss-spec/omss-spec), for example a self-hosted
+    [CinePro Core](https://github.com/cinepro-org/core): `provider: 'http://192.168.1.20:3000'`.
+  - `playlists`: M3U links for live TV, including an IPTV provider's `get.php?username=…&password=…` link.
+    They show under Live TV. Without any, Couch TV lists iptv-org's free sports channels.
+  - `sportsRelay`: a server for the Sports screen's schedule; most people won't have one.
+
+  [Sources](docs/streaming-provider.md) has the details and the APIs.
 
 This file stays on your computer: git ignores it. It's copied into the app when you install.
 

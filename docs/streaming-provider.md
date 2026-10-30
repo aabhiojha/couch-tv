@@ -6,7 +6,7 @@ sources you set up in `web/js/secrets.js` (copy `web/js/secrets.example.js`):
 | Setting | What it is |
 |---|---|
 | `addons` | Stremio add-on URLs. Torrent results play through the TV's torrent engine ([torrent-server.md](torrent-server.md)), http ones directly. |
-| `provider` | A stream server for films and episodes, speaking the API below. |
+| `provider` | A stream server for films and episodes, speaking the API below: an [OMSS](https://github.com/omss-spec/omss-spec) server you run, such as a self-hosted [CinePro Core](https://github.com/cinepro-org/core). |
 | `playlists` | M3U playlists for live channels. Defaults to iptv-org's free sports channels. |
 | `sportsRelay` | A server for the Sports screen's schedule, speaking the [sports API](#sports-relay) below. |
 
