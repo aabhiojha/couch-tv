@@ -1,31 +1,7 @@
-# Installing on your TV
+# Deploying to the TV
 
-Couch TV installs through the TV's Developer Mode: you build it on a computer, sign it with your own
-free Samsung certificate, and install it over your home network. Samsung TVs from 2019 on (Tizen 5+) should
-work; only a 2021 AU7700 (Tizen 6.0) has been tested.
-
-## One-time setup
-
-1. **Install the tools** on a computer on the same network as the TV (Linux, macOS or Windows with WSL):
-   - [Tizen Studio](https://developer.tizen.org/development/tizen-studio/download) (the CLI is enough). In its
-     Package Manager, install **TV Extensions** and **Samsung Certificate Extension**.
-   - Node.js 22+ and Python 3 (tests and checks).
-   - The [.NET 8 SDK](https://dotnet.microsoft.com/download) at `~/.dotnet`, for the torrent engine that runs
-     on the TV. Without it the app installs without torrents.
-2. **Turn on Developer Mode on the TV.** Open **Apps**, type `12345` on the remote, switch **Developer mode**
-   On, set **Host PC IP** to this computer's IP, then restart the TV (hold Power until it restarts).
-3. **Connect to the TV.** Find its IP under Settings → General → Network → Network Status, then:
-   ```sh
-   ~/tizen-studio/tools/sdb connect <TV IP>
-   ~/tizen-studio/tools/sdb devices        # shows the TV as "device"
-   ```
-4. **Make a signing certificate.** Open Tizen Studio's **Certificate Manager** (on Linux under Wayland, start it
-   with `GDK_BACKEND=x11` or it hangs). Add a profile (**+**, then **Samsung**, then **TV**), create a new author
-   certificate, sign in with a Samsung account, and create a distributor certificate with privilege **Public**.
-   With `sdb` connected, the TV's DUID is filled in for you; check it is listed. Name the profile `couch`, or
-   pass `PROFILE=<name>` below.
-5. **Set up your sources**: `cp web/js/secrets.example.js web/js/secrets.js`, then add a
-   [TMDB API key](https://www.themoviedb.org/settings/api) and your [sources](streaming-provider.md).
+First-time setup (tools, Developer Mode, certificate, `secrets.js`) is in [INSTALL.md](../INSTALL.md). This page
+covers what the install does, and commands for developing and debugging on the TV.
 
 ## Build, install and launch
 
