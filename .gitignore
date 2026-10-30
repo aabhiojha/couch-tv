@@ -14,3 +14,4 @@ __pycache__/
 
 # Device-specific install notes (TV MAC, DUID)
 docs/TV_APP_INSTALL.md
+node_modules/

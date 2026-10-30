@@ -2,7 +2,9 @@
 // Usage: node tools/check-js.js
 const fs = require('fs');
 const path = require('path');
-const acorn = require(path.join(process.env.HOME, 'emsdk/upstream/emscripten/node_modules/acorn'));
+// acorn from npm (CI: npm install --no-save acorn@8.12.1), else the copy bundled with emsdk.
+let acorn;
+try { acorn = require('acorn'); } catch (e) { acorn = require(path.join(process.env.HOME, 'emsdk/upstream/emscripten/node_modules/acorn')); }
 
 const web = path.join(__dirname, '..', 'web');
 const files = [];

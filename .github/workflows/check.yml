@@ -11,5 +11,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - run: npm install --no-save acorn@8.12.1
       - run: ./build.sh
       - run: dotnet test tv-service/CouchTor.Tests/CouchTor.Tests.csproj
