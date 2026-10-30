@@ -5,18 +5,19 @@ the remote, and play them from the sources you set up: Stremio add-ons (torrents
 stream server, M3U playlists and a sports relay. Couch TV ships no sources of its own; see
 [Sources](docs/streaming-provider.md).
 
-```sh
-cp web/js/secrets.example.js web/js/secrets.js   # add your TMDB key and sources
-```
+## Install
+
+Couch TV isn't in Samsung's app store: you install it with the TV's Developer Mode and your own free Samsung
+certificate. [Installing on your TV](docs/deployment.md) covers the one-time setup; after that:
 
 ```sh
-./build.sh           # tests + Chromium 76 compatibility check
-./build.sh install   # package, install and launch on the TV
+cp web/js/secrets.example.js web/js/secrets.js   # add your TMDB key and sources
+TV=<TV IP> ./build.sh install                     # test, sign, install and launch on the TV
 ```
 
 Documentation is in [`docs/`](docs/README.md): [user guide](docs/user-guide.md),
 [architecture](docs/architecture.md), [development](docs/development.md),
-[deploying to the TV](docs/deployment.md) and [sources](docs/streaming-provider.md).
+[installing on your TV](docs/deployment.md) and [sources](docs/streaming-provider.md).
 
 ## Contributing
 

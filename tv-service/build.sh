@@ -3,12 +3,12 @@
 #   ./build.sh            build + sign  -> out/CouchTor01-1.0.0.tpk
 #   ./build.sh install    ... then install on the TV and start the service
 #   ./build.sh test       run the laptop unit tests
-# Env: DOTNET (~/.dotnet/dotnet), TIZEN_STUDIO (~/tizen-studio), TV (192.168.1.33:26101), PROFILE (couch)
+# Env: DOTNET (~/.dotnet/dotnet), TIZEN_STUDIO (~/tizen-studio), TV (<TV IP>:26101, needed to install), PROFILE (couch)
 set -euo pipefail
 cd "$(dirname "$0")"
 DOTNET=${DOTNET:-$HOME/.dotnet/dotnet}
 TIZEN_STUDIO=${TIZEN_STUDIO:-$HOME/tizen-studio}
-TV=${TV:-192.168.1.33:26101}
+TV=${TV:-}
 PROFILE=${PROFILE:-couch}
 TIZEN=$TIZEN_STUDIO/tools/ide/bin/tizen
 SDB=$TIZEN_STUDIO/tools/sdb

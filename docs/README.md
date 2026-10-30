@@ -14,7 +14,7 @@ runtime. The code is written for the TV's old browser engine (Chromium 76) and a
 | [User guide](user-guide.md) | Using the app with the remote: every screen, key and setting |
 | [Architecture](architecture.md) | How the code is organised: modules, data flow, keys, storage |
 | [Development](development.md) | Setting up, the desktop harness, tests, coding rules |
-| [Deploying to the TV](deployment.md) | Packaging, installing, launching and debugging on the TV |
+| [Installing on your TV](deployment.md) | Packaging, installing, launching and debugging on the TV |
 | [Stream provider](streaming-provider.md) | Setting up sources, and the stream server and sports relay APIs |
 | [Torrent server](torrent-server.md) | The Stremio streaming server that plays torrents: service, cache, verified API, CORS |
 
