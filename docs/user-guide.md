@@ -6,7 +6,7 @@ media keys (▶ Play/Pause, ⏪ Rewind, ⏩ Fast-forward, ■ Stop, and the digi
 ## Getting around
 
 The **tab bar** across the top lists the main screens, as on Apple TV: Search (magnifier), Home,
-Movies, Series, Live TV, My List and Settings (gear). Press **Up** at the top of any screen to reach
+Movies, Series, Sports, My List and Settings (gear). Press **Up** at the top of any screen to reach
 it. **Left/Right** picks a screen, and **OK** or **Down** opens it. The bar slides away while a screen
 is scrolled down and comes back when you return to the top; a title's page has no bar.
 
@@ -43,7 +43,7 @@ Everything you added with the **My List** button on a title. Empty until you add
 
 ## Sports
 
-Sports is cricket and football (soccer) only, found and played by the TV itself (the computer can be off). **On now**, **Today**, **Upcoming** and **Channels** show
+Sports is cricket and football (soccer) only, from your sports relay and playlists (see [Sources](streaming-provider.md)). **On now**, **Today**, **Upcoming** and **Channels** show
 the schedule server's listings plus the cricket and football channels from your configured playlists
 (recognised by name, such as Willow, Star Sports, beIN or Premier League; other channels are left out). The screen opens on the first of these with something in it. A sport
 filter sits above the grid; it lists only the sports in the current view, most listed first, and hides

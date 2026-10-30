@@ -5,7 +5,7 @@
 | Tool | Used for |
 |---|---|
 | Node.js 22+ | Tests, `tools/check-js.js`, `tools/shot.js` (uses the built-in `WebSocket`) |
-| Emscripten SDK at `~/emsdk` | Only for the copy of `acorn` that `check-js.js` loads from it |
+| `acorn` | `check-js.js` parses with it: `npm install --no-save acorn@8.12.1`, or the copy in an Emscripten SDK at `~/emsdk` |
 | Google Chrome | `tools/shot.js` runs it headless for screenshots |
 | Python 3 (or any static server) | Serving `web/` for the desktop harness |
 | Tizen Studio | Packaging and installing on the TV (see [Deploying to the TV](deployment.md)) |

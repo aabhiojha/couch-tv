@@ -12,7 +12,7 @@ window.COUCH_SECRETS = {
   // A stream server for films and episodes, speaking the API in docs/streaming-provider.md.
   // provider: 'http://192.168.1.10:8788',
 
-  // M3U playlists for live channels (defaults to iptv-org's free sports channels).
+  // M3U playlists: their cricket and football channels appear on the Sports screen (default: iptv-org's free sports channels).
   // playlists: ['https://iptv-org.github.io/iptv/categories/sports.m3u'],
 
   // A sports relay serving /sports.json and /sports/health (docs/streaming-provider.md).
