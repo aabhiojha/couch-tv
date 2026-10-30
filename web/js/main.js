@@ -18,7 +18,7 @@
   function askSource(item, video, options) {
     var settings = Data.settings();
     Shell.choose({ title: item.title, body: 'How do you want to watch?', index: settings.lastSource === 'web' ? 1 : 0,
-      choices: ['Torrent · downloads on this TV', 'Web stream · from your stream server'] }).then(function (index) {
+      choices: ['Torrent · downloads on this TV', 'Web stream · VixSrc or VidApi'] }).then(function (index) {
       if (index === false) return;
       var mode = index === 1 ? 'web' : 'torrent';
       if (settings.lastSource !== mode) Data.setSetting('lastSource', mode);

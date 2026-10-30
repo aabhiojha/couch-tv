@@ -18,6 +18,7 @@ node tests/test_artwork.js
 node tests/test_parallax.js
 node tests/test_live.js
 node tests/test_live_playback.js
+python3 tests/test_live_relay.py
 node tools/check-js.js
 
 [ "$1" = install ] || exit 0

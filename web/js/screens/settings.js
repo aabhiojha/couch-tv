@@ -28,7 +28,7 @@
       ] },
       { title: 'Sources', items: [
         { key: 'askSource', type: 'toggle', title: 'Ask how to stream',
-          help: 'Before a film or episode starts, choose Torrent (downloads on this TV) or Web stream (from your stream server). The other way is still tried if the one you pick has nothing that plays.' },
+          help: 'Before a film or episode starts, choose Torrent (downloads on this TV) or Web stream (VixSrc and VidApi, found by this TV). The other way is still tried if the one you pick has nothing that plays.' },
         { key: 'sourceOrder', type: 'choice', title: 'Source order', options: [
           { value: 'addons-first', label: 'Add-ons first' },
           { value: 'provider-first', label: 'Stream server first' }
@@ -60,9 +60,9 @@
       ] },
       { title: 'Connection', items: [
         { key: 'server', type: 'action', title: 'Stream server',
-          help: 'Web streams come from the stream server set in js/secrets.js. If titles won’t play, press OK to test it again.' },
+          help: 'Web streams are found by the stream server on this TV (VixSrc and VidApi). If titles won’t play, press OK to test it again.' },
         { key: 'sports', type: 'action', title: 'Sports streams',
-          help: 'Sports schedules and streams come from the sports relay set in js/secrets.js. If they stop playing, this row says why. Press OK to test with a live channel now; it can take up to a minute.' },
+          help: 'This TV finds sports streams by running the Streamed site’s own player code. When the site changes it, streams stop playing and this row says why. Press OK to test with a live channel now; it can take up to a minute.' },
         { key: 'health', type: 'action', title: 'App health',
           help: 'Unexpected errors are recorded here so problems can be traced. Press OK to clear the list.' }
       ] }

@@ -1,8 +1,7 @@
 const assert = require('node:assert/strict');
-global.COUCH_SECRETS = { tmdbKey: 'test-key', torrentServer: 'http://192.168.1.34:11470',
-  provider: 'http://192.168.1.34:8788/', addons: ['https://addon.example'] };
+global.COUCH_SECRETS = { tmdbKey: 'test-key', torrentServer: 'http://192.168.1.34:11470' };
 const calls = [];
-let scrapeBody = { sources: [{ type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=movie', provider: { id: 'one' } }] };
+let scrapeBody = { sources: [{ type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=movie', provider: { id: 'vixsrc' } }] };
 let failOnce = null; // path whose next request fails with a network error
 global.fetch = async function (url) {
   const address = new URL(url);
@@ -90,14 +89,14 @@ const PStream = require('../web/js/pstream.js');
   assert.equal(stream.url, 'http://192.168.1.34:8788/v1/proxy.m3u8?data=movie');
   assert(calls.some(c => c.pathname === '/v1/tv/1396/seasons/1/episodes/1'));
   scrapeBody = { sources: [
-    { type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=working', provider: { id: 'one' } },
-    { type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=broken', provider: { id: 'two' } }
+    { type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=broken', provider: { id: 'vidapi' } },
+    { type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=working', provider: { id: 'vixsrc' } }
   ] };
-  // Best: the source with the highest rendition (1080p beats 720p); every quality is listed.
+  // Best: the source with the highest rendition (VidApi 1080p beats VixSrc 720p); every quality is listed.
   let best = await PStream.scrape(movie, movie.videos[0], 'best');
   assert.equal(best.url, 'http://192.168.1.34:8788/v1/proxy.m3u8?data=broken');
   assert.deepEqual(best.qualities, [1080, 720, 480]);
-  // A chosen quality keeps the stream server's order among sources that have it, and asks the relay for it.
+  // A chosen quality prefers VixSrc when it has it, and asks the relay for that rendition.
   assert.equal((await PStream.scrape(movie, movie.videos[0], 720)).url, 'http://192.168.1.34:8788/v1/proxy.m3u8?data=working&quality=720');
   assert.equal((await PStream.scrape(movie, movie.videos[0], 1080)).url, 'http://192.168.1.34:8788/v1/proxy.m3u8?data=broken&quality=1080');
   // After a failure the tried source is excluded; when none are left the error says so.
@@ -107,14 +106,14 @@ const PStream = require('../web/js/pstream.js');
   assert.equal(best.remaining, 1);
   await assert.rejects(PStream.scrape(movie, movie.videos[0], 'best', [best.source, fallback.source]), /No other stream worked/);
   // A source whose playlist can't be read is still usable.
-  scrapeBody = { sources: [{ type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=unknown', provider: { id: 'one' } }] };
+  scrapeBody = { sources: [{ type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=unknown', provider: { id: 'vixsrc' } }] };
   assert.equal((await PStream.scrape(movie, movie.videos[0], 'best')).url, 'http://192.168.1.34:8788/v1/proxy.m3u8?data=unknown');
   scrapeBody = { sources: [] };
   await assert.rejects(PStream.scrape(movie, movie.videos[0]), /No stream found/);
-  scrapeBody = { sources: [{ type: 'hls', url: 'https://example.com/play.m3u8', provider: { id: 'one' } }] };
+  scrapeBody = { sources: [{ type: 'hls', url: 'https://example.com/play.m3u8', provider: { id: 'vixsrc' } }] };
   await assert.rejects(PStream.scrape(movie, movie.videos[0]), /No stream found/);
   scrapeBody = { sources: [
-    { type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=hd', provider: { id: 'one' } },
+    { type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=hd', provider: { id: 'vixsrc' } },
     { type: 'hls', url: 'http://192.168.1.34:8788/v1/proxy?data=sd' }
   ] };
   let order = 'addons-first', addonCalls = [], failAddon = false;
@@ -138,7 +137,7 @@ const PStream = require('../web/js/pstream.js');
   assert.equal(first.stats, 'http://192.168.1.34:11470/abc/2/stats.json');
   assert.deepEqual(first.qualities, [1080]);
   assert.equal(first.remaining, 2);          // the other add-on stream + the provider family (not awaited)
-  assert.deepEqual(addonCalls[0], { urls: ['https://addon.example'], type: 'movie', id: 'tt1375666' });
+  assert.deepEqual(addonCalls[0], { urls: ['https://torrentio.strem.fun'], type: 'movie', id: 'tt1375666' });
   global.COUCH_SECRETS.addons = ['https://test.example/manifest.json'];
   await PStream.scrape(show, show.videos[0], 'best');
   assert.deepEqual(addonCalls.at(-1), { urls: global.COUCH_SECRETS.addons, type: 'series', id: 'tt0903747:1:1' });
@@ -385,7 +384,7 @@ async function checkTorrentService() {
   const flush = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
   function load({ override, ip, ipError, launchError, response } = {}) {
     let now = 0, launches = 0, requests = [], timers = new Map(), nextId = 0;
-    const window = { COUCH_SECRETS: { torrentServer: override, addons: ['https://addon.example'] },
+    const window = { COUCH_SECRETS: { torrentServer: override },
       webapis: { network: { getIp() { if (ipError) throw Error('network unavailable'); return ip; } } },
       tizen: { application: { launch(id, success, error) {
         assert.equal(id, 'CouchTor01.Service'); launches++;
@@ -449,12 +448,6 @@ async function checkTorrentService() {
   const invalid = load({ response: () => Promise.resolve({ ok: true, json: async () => ({ success: false }) }) });
   assert.equal((await invalid.api.ping(true)).ok, false);
 
-  // Couch TV ships no sources: with none set up, playing says so and the stream server reads "Not set up".
-  const none = load({ ip: '192.168.1.6' });
-  none.window.COUCH_SECRETS.addons = [];
-  await assert.rejects(none.api.scrape({ mediaType: 'movie', tmdbId: '1', imdbId: 'tt1' }, {}, 'best'), /No sources set up/);
-  const status = await none.api.ping(false);
-  assert.deepEqual([status.ok, status.host], [false, 'Not set up']);
   const tv = load({ ip: '192.168.1.6' });
   const Addons = require('../web/js/addons.js');
   tv.window.Addons = Object.assign({}, Addons, { streams: async () => [
