@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="CouchTor01" version="1.0.0" api-version="8" xmlns="http://tizen.org/ns/packages">
+  <profile name="tv" />
+  <service-application appid="CouchTor01.Service" exec="CouchTor.Service.dll" type="dotnet" multiple="false" taskmanage="false" nodisplay="true" auto-restart="false" on-boot="false">
+    <label>CouchTor</label>
+  </service-application>
+  <privileges>
+    <privilege>http://tizen.org/privilege/internet</privilege>
+  </privileges>
+</manifest>

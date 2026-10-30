@@ -1,0 +1,146 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-10-26T09:48:24.814Z",
+        "reason": "User confirmed: chose Inter in the 2026-10-26 font question (SF Pro can't be bundled on the TV)"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "25px",
+        "createdAt": "2026-10-26T11:13:14.852Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "27px",
+        "createdAt": "2026-10-26T11:13:14.883Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "28px",
+        "createdAt": "2026-10-26T11:13:14.909Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "30px",
+        "createdAt": "2026-10-26T11:13:14.940Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "46px",
+        "createdAt": "2026-10-26T11:13:14.967Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "56px",
+        "createdAt": "2026-10-26T11:13:14.994Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "7.4px",
+        "createdAt": "2026-10-26T11:13:15.029Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "2px",
+        "createdAt": "2026-10-26T11:13:15.060Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "3px",
+        "createdAt": "2026-10-26T11:13:15.091Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "4px",
+        "createdAt": "2026-10-26T11:13:15.119Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "5px",
+        "createdAt": "2026-10-26T11:13:15.148Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "6px",
+        "createdAt": "2026-10-26T11:13:15.177Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "7px",
+        "createdAt": "2026-10-26T11:13:15.204Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "10px",
+        "createdAt": "2026-10-26T11:13:15.231Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "14px",
+        "createdAt": "2026-10-26T11:13:15.257Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "18px",
+        "createdAt": "2026-10-26T11:13:15.288Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "23px",
+        "createdAt": "2026-10-26T11:13:15.316Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "30px",
+        "createdAt": "2026-10-26T11:13:15.342Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "36px",
+        "createdAt": "2026-10-26T11:13:15.370Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(120,120,128,.3)",
+        "createdAt": "2026-10-26T11:13:15.403Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(120,120,128,.36)",
+        "createdAt": "2026-10-26T11:13:15.434Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values)"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.2, 1.15, .4, 1)",
+        "createdAt": "2026-10-26T11:13:15.461Z",
+        "reason": "User confirmed 2026-10-26: \"i like things as it is\" (keep the shipped Couch TV values) (tvOS focus overshoot)"
+      }
+    ]
+  }
+}

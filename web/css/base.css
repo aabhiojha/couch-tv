@@ -1,0 +1,146 @@
+/* Inter (SIL Open Font License): the open face closest to Apple's San Francisco, which can't be bundled
+   on a Samsung TV. One variable file, 400-800, so nothing loads from the network. */
+@font-face { font-family:'Inter'; font-style:normal; font-weight:400 800; src:url('../fonts/inter-latin.woff2') format('woff2'); }
+/* tvOS dark palette. This TV has no backdrop blur, so "materials" are translucent white fills over black
+   and near-opaque greys for sheets. */
+:root { --bg:#000; --surface:#1c1c1e; --raised:#2c2c2e; --accent:#fff; --cream:#fff; --muted:rgba(235,235,245,.62); --fill:rgba(255,255,255,.14); --fill-strong:rgba(255,255,255,.2); --lift:0 18px 40px rgba(0,0,0,.5); --focus-ease:cubic-bezier(.2,1.15,.4,1); --slide-ease:cubic-bezier(.22,1,.36,1); }
+* { box-sizing:border-box; }
+html,body { width:1920px; height:1080px; margin:0; overflow:hidden; }
+body { background:var(--bg); color:var(--cream); font:400 29px Inter,Arial,Helvetica,sans-serif; -webkit-font-smoothing:antialiased; }
+[hidden] { display:none !important; }
+/* Settings > Remove animations. Loading indicators keep moving so a wait never looks like a freeze. */
+.no-motion *:not(.loader-bar):not(.player-spinner), .no-motion *:before, .no-motion *:after { transition:none !important; animation:none !important; }
+@media (prefers-reduced-motion: reduce) { *:not(.loader-bar):not(.player-spinner), *:before, *:after { transition:none !important; animation:none !important; } }
+#app { position:relative; width:1920px; height:1080px; overflow:hidden; background:var(--bg); }
+.shell-stage { position:absolute; top:0; right:0; bottom:0; left:0; overflow:hidden; }
+.shell-stage>main { position:absolute; top:0; right:0; bottom:0; left:0; }
+
+/* Tab bar across the top, as on Apple TV. It tucks away while a screen is scrolled down (bar-tucked) and
+   on pushed pages such as a title's details (shell-pushed); focusing it always brings it back. */
+.nav-rail { position:absolute; z-index:6; top:0; right:0; left:0; height:200px; display:flex; justify-content:center; align-items:flex-start; padding-top:40px; transition:transform 340ms var(--slide-ease),opacity 220ms ease-out; will-change:transform; }
+.nav-rail:before { content:''; position:absolute; top:0; right:0; left:0; height:220px; background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(0,0,0,.32) 55%,rgba(0,0,0,0)); }
+.shell-root.bar-tucked .nav-rail:not(.expanded),.shell-root.shell-pushed .nav-rail:not(.expanded) { opacity:0; transform:translateY(-200px); }
+.shell-brand { position:absolute; top:52px; left:90px; font-size:38px; }
+.nav-item { position:relative; display:flex; align-items:center; height:64px; margin:0 5px; padding:0 30px; border-radius:32px; color:var(--muted); transform:scale(1); transition:transform 260ms var(--focus-ease); }
+.nav-item .kit-icon { display:none; width:34px; height:34px; flex:none; }
+.nav-label { font-size:29px; font-weight:500; white-space:nowrap; }
+.nav-item-search,.nav-item-settings { padding:0 15px; }
+.nav-item-search .kit-icon,.nav-item-settings .kit-icon { display:block; }
+.nav-item-search .nav-label,.nav-item-settings .nav-label { display:none; }
+.nav-item.current { color:var(--cream); background:var(--fill); }
+.nav-item.focused { color:#000; background:var(--accent); transform:scale(1.08); box-shadow:0 12px 28px rgba(0,0,0,.45); }
+
+.shell-toast { position:absolute; z-index:11; left:50%; bottom:64px; max-width:1000px; padding:20px 38px; border-radius:40px; background:rgba(44,44,46,.97); box-shadow:var(--lift); font-size:27px; font-weight:500; opacity:0; transform:translate3d(-50%,18px,0); transition:opacity 200ms ease-out,transform 260ms var(--slide-ease); pointer-events:none; }
+.shell-toast.visible { opacity:1; transform:translate3d(-50%,0,0); }
+.offline-banner { position:absolute; z-index:9; left:90px; bottom:64px; padding:14px 28px; border-radius:30px; background:rgba(44,44,46,.97); color:var(--cream); font-size:25px; font-weight:500; }
+
+/* Alerts as tvOS draws them: no box, centred text over a dimmed screen, wide rounded buttons. */
+.modal-shade { position:absolute; z-index:12; top:0; right:0; bottom:0; left:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.8); }
+.modal-panel { width:1040px; text-align:center; animation:modal-in 300ms var(--slide-ease); }
+@keyframes modal-in { from { opacity:0; transform:scale(.96); } }
+.modal-title { margin:0 0 22px; font-size:57px; font-weight:700; line-height:1.1; letter-spacing:-.5px; }
+.modal-body { max-width:860px; margin:0 auto; color:var(--muted); font-size:31px; line-height:1.35; }
+.modal-actions { display:flex; flex-direction:column; align-items:center; margin-top:56px; }
+.modal-action { display:flex; align-items:center; justify-content:center; width:600px; height:86px; margin:0 0 14px; padding:0 40px; border-radius:16px; background:var(--raised); font-size:31px; font-weight:600; transition:transform 260ms var(--focus-ease); }
+.modal-action.focused { background:var(--accent); color:#000; transform:scale(1.08); box-shadow:var(--lift); }
+.modal-choices { width:860px; max-height:560px; margin:52px auto 0; overflow:hidden; text-align:left; }
+.modal-choice { height:82px; margin:0 0 10px; padding:0 34px; border-radius:16px; background:rgba(255,255,255,.08); font-size:31px; font-weight:500; line-height:82px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.modal-choice.focused { background:var(--accent); color:#000; }
+
+.wordmark { font-weight:700; letter-spacing:-1px; line-height:1; white-space:nowrap; }
+.wordmark-accent { color:rgba(255,255,255,.5); }
+/* The tab bar names every root screen, so their own headers stay out of the way. */
+.shell-stage .screen-title,.shell-stage .eyebrow { display:none; }
+
+/* Every movie and show card is the Continue Watching size: 480×270 artwork. */
+.poster-card { position:relative; flex:none; width:480px; height:388px; margin:12px 28px 0 18px; transform:scale(1); transition:transform 260ms var(--focus-ease); }
+.poster-card.focused { z-index:2; transform:scale(1.08); }
+.poster-art { position:relative; height:270px; overflow:hidden; border-radius:12px; background:var(--surface); }
+.poster-image { display:none; width:100%; height:100%; object-fit:cover; }
+.poster-art.has-image .poster-image { display:block; }
+.poster-art.has-image .poster-fallback { display:none; }
+.poster-art.image-pending .poster-fallback { display:none; }
+.poster-fallback { position:absolute; top:0; right:0; bottom:0; left:0; display:flex; align-items:flex-end; padding:24px 26px; background:linear-gradient(160deg,#3a3a3c,#1c1c1e); color:var(--cream); font-size:31px; font-weight:600; line-height:1.15; overflow:hidden; }
+/* Title logo over a textless backdrop; shown only once the backdrop itself has loaded. */
+.poster-scrim,.poster-logo { display:none; }
+.poster-art.has-logo.has-image .poster-scrim { display:block; position:absolute; top:0; right:0; bottom:0; left:0; background:linear-gradient(20deg,rgba(0,0,0,.78),rgba(0,0,0,0) 58%); }
+.poster-art.has-logo.has-image .poster-logo { display:block; position:absolute; left:20px; bottom:20px; max-width:50%; max-height:40%; }
+.poster-progress { position:absolute; z-index:1; right:0; bottom:0; left:0; height:6px; background:var(--accent); transform-origin:left center; }
+.poster-title { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; padding:14px 4px 0; color:var(--muted); font-size:26px; font-weight:500; line-height:1.18; }
+/* The focused card's ring is one glass layer per artwork size (shell.js) that slides from card to card, so
+   moving focus repaints nothing. Sized only with scale() from the artwork size it was created at. */
+.focus-glass { position:fixed; z-index:5; left:0; top:0; pointer-events:none; opacity:0; transform-origin:0 0; will-change:transform; border:2px solid rgba(255,255,255,.6); background:linear-gradient(150deg,rgba(255,255,255,.24),rgba(255,255,255,0) 55%); box-shadow:0 24px 60px rgba(0,0,0,.55); transition:transform 280ms var(--focus-ease),opacity 180ms ease-out; }
+.poster-card.focused .poster-title { color:var(--cream); }
+.poster-meta { padding:6px 4px 0; color:var(--muted); font-size:24px; }
+.kit-row { position:relative; min-height:462px; margin-bottom:12px; }
+.row-heading { margin:0 0 16px 10px; font-size:34px; font-weight:700; letter-spacing:-.3px; }
+.row-viewport { width:100%; height:404px; overflow:visible; }
+.row-track { display:flex; width:max-content; min-height:400px; padding-right:90px; transition:transform 300ms var(--slide-ease); will-change:transform; }
+.kit-grid { position:relative; }
+.grid-viewport { width:100%; height:550px; padding:12px 18px 0; overflow:hidden; }
+.grid-track { --grid-row-step:412px; display:grid; grid-template-columns:repeat(3,480px); grid-auto-rows:var(--grid-row-step); grid-gap:0 40px; width:max-content; transition:transform 300ms var(--slide-ease); will-change:transform; }
+.grid-track .poster-card { height:388px; margin:12px 0 0; }
+.kit-grid .collection-state { position:absolute; right:30px; bottom:18px; left:20px; width:max-content; max-width:95%; }
+.kit-grid .collection-state.focused { padding:14px 24px; border-radius:16px; background:var(--accent); color:#000; }
+.collection-state { min-height:0; color:var(--muted); font-size:28px; }
+.collection-state.focused { color:var(--cream); }
+.collection-retry { display:inline-block; margin:18px 8px; padding:22px 30px; border-radius:16px; background:var(--fill); }
+.skeleton-card { background:transparent; }
+.skeleton-block { background:var(--surface); }
+.skeleton-line { width:70%; height:24px; margin:16px 4px; border-radius:6px; }
+/* Capsule tabs: plain text, the selected one on a light fill, the focused one white and lifted. */
+.kit-tabs { min-height:76px; margin:0 -12px; padding:6px 12px; overflow:hidden; }
+.kit-tabs-track { display:flex; align-items:center; transition:transform 300ms var(--slide-ease); }
+.kit-tab { flex:none; white-space:nowrap; margin:0 10px 0 0; padding:12px 28px; border-radius:32px; color:var(--muted); font-size:28px; font-weight:500; text-align:center; transition:transform 260ms var(--focus-ease); }
+.kit-tab.selected { color:var(--cream); background:var(--fill); }
+.kit-tab.focused { color:#000; background:var(--accent); transform:scale(1.08); box-shadow:0 12px 28px rgba(0,0,0,.45); }
+
+/* Remote feedback (shell.js): OK sinks the focused item until released; a move past an edge nudges it and springs
+   back. --fs is the item's focused scale, which the nudge keeps; --fp its pressed scale. */
+.poster-card,.nav-item,.kit-tab,.modal-action,.details-button { --fs:1.08; --fp:1.026; }
+.details-episode { --fs:1.03; --fp:.98; }
+body .focused.pressed { transform:scale(var(--fp,.97)); transition:transform 110ms ease-out; }
+body .focused.bounce-l { animation:bounce-l 380ms var(--slide-ease); }
+body .focused.bounce-r { animation:bounce-r 380ms var(--slide-ease); }
+body .focused.bounce-u { animation:bounce-u 380ms var(--slide-ease); }
+body .focused.bounce-d { animation:bounce-d 380ms var(--slide-ease); }
+@keyframes bounce-l { 30% { transform:translateX(-14px) scale(var(--fs,1)); } }
+@keyframes bounce-r { 30% { transform:translateX(14px) scale(var(--fs,1)); } }
+@keyframes bounce-u { 30% { transform:translateY(-14px) scale(var(--fs,1)); } }
+@keyframes bounce-d { 30% { transform:translateY(14px) scale(var(--fs,1)); } }
+
+/* Sliding focus pill (kit.js Pill) under the tab bar and Tabs: the items show no fill of their own when focused. */
+.kit-tabs-track { position:relative; }
+.nav-item,.kit-tab { position:relative; z-index:1; transition:transform 260ms var(--focus-ease),color 140ms ease-out; }
+.nav-item.focused,.kit-tab.focused { background:transparent; box-shadow:none; }
+.kit-pill { position:absolute; left:0; top:0; z-index:0; opacity:0; pointer-events:none; transition:opacity 160ms ease-out; }
+.kit-pill.on { opacity:1; }
+.kit-pill>div { position:absolute; left:0; top:0; background:var(--accent); transform-origin:0 0; will-change:transform; transition:transform 300ms var(--focus-ease); }
+.kit-pill:not(.on)>div { will-change:auto; }
+.kit-pill-cap:first-child { border-radius:999px 0 0 999px; }
+.kit-pill-cap:last-child { border-radius:0 999px 999px 0; }
+
+/* Loading shimmer: a soft band sweeps over artwork that hasn't arrived. It only moves, so nothing repaints; as a
+   loading indicator it keeps moving with Remove animations on. */
+.skeleton-block { position:relative; overflow:hidden; }
+.poster-art.image-loading:after,.skeleton-block:after { content:''; position:absolute; top:0; bottom:0; left:0; width:60%;
+  background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.08),rgba(255,255,255,0));
+  animation:shimmer 1.6s ease-in-out infinite; will-change:transform; }
+.no-motion .poster-art.image-loading:after,.no-motion .skeleton-block:after { animation:shimmer 1.6s ease-in-out infinite !important; }
+@keyframes shimmer { from { transform:translateX(-100%); } to { transform:translateX(270%); } }
+
+/* Parallax (shell.js): the focused poster's title logo settles after drifting in. */
+.poster-logo { transition:transform 700ms var(--slide-ease); }
+
+/* A screen arriving fades in (shell.js activate). Opacity only: a moving screen would throw off where the focus
+   glass is placed, which is measured from the card's position on screen. */
+.shell-stage>main.screen-enter { animation:screen-in 280ms ease-out; }
+@keyframes screen-in { from { opacity:0; } }
+
+/* Sports: a live game's badge pulses a red dot (a small layer: opacity only); crests stand in for a missing poster. */
+.poster-badge-live:before { content:''; display:inline-block; width:12px; height:12px; margin-right:8px; border-radius:6px; background:#ff453a; vertical-align:1px; animation:live-pulse 1.6s ease-in-out infinite; }
+@keyframes live-pulse { 50% { opacity:.25; } }
+.poster-art.has-crests .poster-fallback { display:none; }
+.poster-crests { position:absolute; top:0; right:0; bottom:0; left:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(160deg,#2c2c2e,#1c1c1e); }
+.poster-crest { width:110px; height:110px; object-fit:contain; }
+.poster-crests-v { margin:0 30px; color:var(--muted); font-size:30px; font-weight:600; }

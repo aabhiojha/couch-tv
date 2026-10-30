@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Engine-independent logic of the TV service; tested on the laptop by CouchTor.Tests.
+       netstandard2.1 (the TV runs .NET Core 3.1) for WACS, the WebAssembly interpreter the sports resolver runs in. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>CouchTor</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WACS" Version="0.16.14" />
+  </ItemGroup>
+</Project>

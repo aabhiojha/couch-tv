@@ -1,0 +1,16 @@
+web/*.wgt
+web/.manifest.tmp
+web/.buildResult/
+web/.sign/
+web/author-signature.xml
+web/signature*.xml
+build/
+web/js/secrets.js
+__pycache__/
+
+# Impeccable review captures and detector cache (regenerated locally)
+.impeccable/review/
+.impeccable/hook.cache.json
+
+# Device-specific install notes (TV MAC, DUID)
+docs/TV_APP_INSTALL.md

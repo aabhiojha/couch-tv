@@ -1,0 +1,14 @@
+<Project Sdk="Tizen.NET.Sdk/1.1.9">
+  <!-- Tizen .NET service app CouchTor01.Service: the torrent streaming server on the TV (port 11470). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>tizen80</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>CouchTor.Service</AssemblyName>
+    <RootNamespace>CouchTor</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CouchTor.Core\CouchTor.Core.csproj" />
+    <ProjectReference Include="..\vendor\monotorrent\MonoTorrent.csproj" />
+  </ItemGroup>
+</Project>

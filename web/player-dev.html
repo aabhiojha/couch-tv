@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Couch TV — Player development</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/loader.css">
+  <link rel="stylesheet" href="css/player.css">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; background: #000; color: #f5f5f7; font-family: Inter, Arial, sans-serif; overflow: auto; }
+    body { overflow: auto; }
+    .dev { box-sizing: border-box; max-width: 1000px; padding: 48px 80px; }
+    h1 { margin: 0 0 24px; font-size: 52px; }
+    p, li { font-size: 26px; line-height: 1.4; }
+    ul { padding-left: 32px; }
+  </style>
+</head>
+<body>
+  <div class="dev">
+    <h1>couch <span style="color:#FF6B4A">tv</span> player</h1>
+    <p>Left/Right: scrub (hold to accelerate) · Down: control buttons · Up: back to the timeline · Enter: play/pause or activate ·
+      0–9: jump to 0–90% · Space: play/pause · Backspace or Escape: Back · Enter here: reopen</p>
+    <ul id="events"></ul>
+  </div>
+  <div id="player"></div>
+  <script src="js/player.js"></script>
+  <script>
+    (function () {
+      var events = document.getElementById('events');
+      function log(message) {
+        var item = document.createElement('li');
+        item.textContent = message;
+        events.insertBefore(item, events.firstChild);
+      }
+      function formatTime(seconds) {
+        var value = Math.floor(Math.max(0, seconds || 0));
+        var minutes = Math.floor(value / 60);
+        var tail = String(value % 60);
+        return minutes + ':' + (tail.length < 2 ? '0' : '') + tail;
+      }
+      function parseStamp(stamp) {
+        var parts = stamp.replace(',', '.').split(':');
+        var seconds = Number(parts.pop());
+        var minutes = Number(parts.pop());
+        return seconds + minutes * 60 + (parts.length ? Number(parts.pop()) * 3600 : 0);
+      }
+      function parseSrt(text) {
+        return text.replace(/\r/g, '').split(/\n\s*\n/).reduce(function (cues, block) {
+          var lines = block.trim().split('\n');
+          var index = lines[0] && lines[0].indexOf('-->') !== -1 ? 0 : 1;
+          if (!lines[index]) return cues;
+          var match = lines[index].match(/(\d\d:\d\d(?::\d\d)?[,.]\d+)\s*-->\s*(\d\d:\d\d(?::\d\d)?[,.]\d+)/);
+          if (!match) return cues;
+          var caption = lines.slice(index + 1).join('\n').replace(/<[^>]*>/g, '').trim();
+          if (caption) cues.push({start: parseStamp(match[1]), end: parseStamp(match[2]), text: caption});
+          return cues;
+        }, []);
+      }
+      // archive.org sends no CORS headers, so a desktop browser can't fetch the real track (the TV
+      // app can). Fall back to sample cues for the first track; the second one stays broken.
+      function sampleCues() {
+        var lines = ['Walter, you can\'t do this to me.', 'I\'m getting married tomorrow\nand I\'m leaving the paper.',
+          'Get me the city desk!', 'That\'s the story of the year.'];
+        var cues = [];
+        for (var start = 0; start < 6000; start += 5) cues.push({start: start, end: start + 4, text: lines[(start / 5) % lines.length]});
+        return cues;
+      }
+      function loadSubtitles(url) {
+        return fetch(url).then(function (response) {
+          if (!response.ok) throw new Error('Subtitle request failed');
+          return response.text();
+        }).then(parseSrt).catch(function (error) {
+          if (/\.asr\.srt$/.test(url)) return sampleCues();
+          throw error;
+        });
+      }
+      // Query parameters exercise each state: ?start=600 (seconds), &autoplay=0, &next=0,
+      // &episodes=0, &resolve=3000 (fake "Finding a stream" delay in ms), &fail=1 (stream error).
+      var params = {};
+      location.search.replace(/[?&]([^=&]+)=([^&]*)/g, function (all, key, value) { params[key] = decodeURIComponent(value); });
+      // &src=<url> plays another file (e.g. a short local clip when archive.org is slow).
+      var url = params.src || 'https://archive.org/download/his_girl_friday/his_girl_friday.mp4';
+      var episodes = ['Pilot', 'The Morning Edition', 'His Girl Friday', 'Stop the Presses', 'A Scoop in the Rain',
+        'Deadline', 'The Mayor Calls Back', 'Extra! Extra!', 'Night Desk', 'The Last Edition'].map(function (title, index) {
+        return {label: 'S1 · E' + (index + 1), title: title, current: index === 2};
+      });
+      function stream() {
+        if (!params.resolve && !params.fail) return null;
+        return new Promise(function (resolve, reject) {
+          setTimeout(function () {
+            if (params.fail) reject(new Error('No working stream was found for this title'));
+            else resolve({url: url});
+          }, Number(params.resolve) || 1500);
+        });
+      }
+      function openPlayer() {
+        Player.open({
+          url: url,
+          stream: stream(),
+          title: 'His Girl Friday', subtitle: '1940 · 1h 32m',
+          startSec: params.start !== undefined ? Number(params.start) : 5470,
+          formatTime: formatTime,
+          subtitles: [
+            {label: 'English (auto)', url: 'https://archive.org/download/his_girl_friday/his_girl_friday.asr.srt'},
+            {label: 'Broken track', url: 'https://archive.org/download/his_girl_friday/missing.srt'}
+          ],
+          subtitlesOn: true,
+          subtitleSize: 'medium',
+          loadSubtitles: loadSubtitles,
+          description: 'Hildy Johnson, the star reporter of The Morning Post, is about to remarry and leave the ' +
+            'newspaper business for good. Her editor and ex-husband Walter Burns has one last chance to win her ' +
+            'back: an exclusive on the eve of an execution that could bring down the city\'s corrupt mayor.',
+          rating: 4.4,
+          year: '1940',
+          next: params.next === '0' ? null : {title: 'His Girl Friday', subtitle: 'S1 · E4 · Stop the Presses'},
+          autoplayNext: params.autoplay !== '0',
+          episodes: params.episodes === '0' ? null : episodes,
+          onEpisode: function (index) { log('Episode requested: ' + episodes[index].label + ' ' + episodes[index].title); },
+          onNext: function () { log('Next episode requested'); },
+          onProgress: function (position, duration) {
+            log('Progress: ' + formatTime(position) + ' / ' + formatTime(duration));
+          },
+          onClose: function () { log('Closed'); }
+        });
+      }
+      document.addEventListener('keydown', function (event) {
+        var code = event.keyCode;
+        if (code === 8 || code === 27) code = 10009;
+        if (code === 32) code = 10252;
+        if (Player.isOpen()) {
+          if (Player.handleKey(code)) event.preventDefault();
+        } else if (code === 13) {
+          openPlayer();
+          event.preventDefault();
+        }
+      });
+      openPlayer();
+    }());
+  </script>
+</body>
+</html>

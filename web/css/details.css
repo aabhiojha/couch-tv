@@ -1,0 +1,58 @@
+/* A title's page, as the Apple TV app draws one: full-bleed artwork, the title (or its logo) large at
+   the left, translucent buttons that turn white and lift when focused. The tab bar is tucked away here. */
+.details-screen { padding:0; background:var(--bg); }
+.details-viewport { height:1080px; overflow:visible; }
+.details-track { padding-bottom:100px; transition:transform 340ms var(--slide-ease); will-change:transform; }
+.details-hero { position:relative; height:760px; overflow:hidden; background:var(--bg); }
+.details-backdrop { position:absolute; top:0; right:0; width:1500px; height:844px; background-position:center top; background-size:cover; will-change:transform; }
+/* Own layer (will-change) so focus changes in the hero never re-rasterize the blur. */
+.details-hero.soft .details-backdrop { top:-25px; right:-25px; bottom:-25px; left:-25px; width:auto; height:auto; filter:blur(26px); opacity:.48; }
+.details-shade { position:absolute; top:0; right:0; bottom:0; left:0; background:linear-gradient(90deg,#000 0%,#000 20%,rgba(0,0,0,.84) 40%,rgba(0,0,0,.2) 70%,rgba(0,0,0,0) 100%),linear-gradient(0deg,#000 0%,rgba(0,0,0,0) 42%); }
+.details-copy { position:relative; z-index:2; width:960px; padding:96px 0 0 90px; }
+.details-title { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; margin:0 0 18px; font-size:76px; line-height:1.04; font-weight:700; letter-spacing:-1.5px; }
+.details-meta { min-height:34px; color:var(--muted); font-size:28px; font-weight:500; }
+.details-chips { display:flex; flex-wrap:wrap; margin-top:20px; max-height:96px; overflow:hidden; }
+.details-chip { margin:0 10px 10px 0; padding:8px 18px; border-radius:24px; background:var(--fill); color:rgba(235,235,245,.85); font-size:24px; font-weight:500; white-space:nowrap; }
+.details-creator { margin-top:10px; color:var(--muted); font-size:25px; }
+.details-description { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden; max-height:164px; margin:22px 0 32px; color:rgba(235,235,245,.85); font-size:29px; line-height:1.4; }
+.details-actions { display:flex; align-items:center; margin-top:20px; }
+.details-button { display:flex; flex:none; align-items:center; justify-content:center; height:80px; min-width:190px; margin-right:20px; padding:0 34px; border-radius:16px; background:var(--fill-strong); font-size:29px; font-weight:600; white-space:nowrap; transition:transform 260ms var(--focus-ease); }
+.details-button .kit-icon { width:32px; height:32px; margin-right:14px; }
+.details-play { min-width:240px; }
+.details-button.focused { position:relative; z-index:3; background:var(--accent); color:#000; box-shadow:var(--lift); transform:scale(1.08); }
+.details-load-state { min-height:30px; margin-top:14px; color:var(--muted); font-size:24px; }
+.details-episodes { padding:10px 0 40px 90px; }
+.details-section-title { margin:0 0 22px; font-size:38px; font-weight:700; letter-spacing:-.3px; }
+.details-season-tabs { margin-bottom:22px; }
+.details-related { padding:18px 0 60px 72px; }
+.details-related .row-heading { margin-left:18px; font-size:38px; }
+.details-logo { display:none; max-width:580px; max-height:150px; margin:0 0 22px; }
+.details-copy.has-logo .details-logo { display:block; }
+.details-copy.has-logo .details-title { display:none; }
+
+.details-badges { display:flex; align-items:center; margin-top:14px; color:var(--muted); font-size:24px; font-weight:500; }
+.details-rating { margin-right:16px; padding:2px 10px; border:2px solid rgba(235,235,245,.5); border-radius:6px; font-weight:600; }
+/* Episodes: a row of picture cards from the season tabs' left edge; the focused one's synopsis below it. */
+.details-episodes { padding-left:72px; }
+.details-episodes .details-section-title,.details-episodes .details-season-tabs { margin-left:18px; }
+.details-episodes .kit-row { min-height:0; margin-bottom:0; }
+.details-episode-info { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; width:1240px; min-height:80px; margin:6px 0 0 18px; color:var(--muted); font-size:26px; line-height:1.45; }
+/* Cast: round portraits, smaller than title cards. */
+.details-cast { padding:10px 0 0 72px; }
+.details-cast .row-heading { margin-left:18px; font-size:38px; }
+.details-cast .kit-row { min-height:0; }
+.details-cast .row-viewport,.details-cast .row-track { height:auto; min-height:0; }
+.details-cast .poster-card { width:200px; height:300px; margin-right:12px; }
+.details-cast .poster-art { height:200px; border-radius:50%; }
+.details-cast .poster-fallback { align-items:center; justify-content:center; padding:0; font-size:56px; letter-spacing:1px; }
+.details-cast .poster-caption { display:none; }
+.details-cast .poster-title { text-align:center; font-size:24px; }
+.details-cast .poster-meta { text-align:center; }
+/* Trailer: the TV service's YouTube page over everything; the loader shows until it plays. */
+.trailer-layer { position:fixed; z-index:50; left:0; top:0; width:1920px; height:1080px; background:#000; display:flex; align-items:center; justify-content:center; }
+.trailer-frame { position:absolute; left:0; top:0; width:1920px; height:1080px; border:0; opacity:0; }
+.trailer-layer.playing .trailer-frame { opacity:1; }
+.trailer-layer.playing .loader { display:none; }
+.person-name { margin:0 0 30px 90px; font-size:57px; font-weight:700; letter-spacing:-.5px; }
+.details-episodes .poster-caption { display:none; }
+.details-episodes .poster-fallback { font-size:44px; color:var(--muted); }

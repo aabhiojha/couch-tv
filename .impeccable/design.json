@@ -1,0 +1,489 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-26T09:49:48+00:00",
+  "title": "Design System: Couch TV",
+  "extensions": {
+    "colorMeta": {
+      "focus-white": {
+        "role": "primary",
+        "displayName": "Focus White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#121212",
+          "#262626",
+          "#404040",
+          "#606060",
+          "#848484",
+          "#acacac",
+          "#d4d4d4",
+          "#f2f2f2"
+        ]
+      },
+      "status-green": {
+        "role": "secondary",
+        "displayName": "System Green",
+        "canonical": "#30d158",
+        "tonalRamp": [
+          "#0b3a18",
+          "#125a26",
+          "#1a7a34",
+          "#1f8f3c",
+          "#30d158",
+          "#5ddc7d",
+          "#8fe7a5",
+          "#c6f3d1"
+        ]
+      },
+      "status-green-on-white": {
+        "role": "secondary",
+        "displayName": "Deep Green on White",
+        "canonical": "#1f8f3c",
+        "tonalRamp": [
+          "#0b3a18",
+          "#125a26",
+          "#1a7a34",
+          "#1f8f3c",
+          "#30d158",
+          "#5ddc7d",
+          "#8fe7a5",
+          "#c6f3d1"
+        ]
+      },
+      "status-red": {
+        "role": "secondary",
+        "displayName": "System Red",
+        "canonical": "#ff453a",
+        "tonalRamp": [
+          "#4a0005",
+          "#7a000a",
+          "#a8000f",
+          "#d70015",
+          "#ff453a",
+          "#ff7269",
+          "#ffa29b",
+          "#ffd3cf"
+        ]
+      },
+      "status-red-on-white": {
+        "role": "secondary",
+        "displayName": "Deep Red on White",
+        "canonical": "#d70015",
+        "tonalRamp": [
+          "#4a0005",
+          "#7a000a",
+          "#a8000f",
+          "#d70015",
+          "#ff453a",
+          "#ff7269",
+          "#ffa29b",
+          "#ffd3cf"
+        ]
+      },
+      "caret-blue": {
+        "role": "tertiary",
+        "displayName": "Caret Blue",
+        "canonical": "#0a84ff",
+        "tonalRamp": [
+          "#002a55",
+          "#00418a",
+          "#005ac0",
+          "#0071e3",
+          "#0a84ff",
+          "#4da5ff",
+          "#8fc5ff",
+          "#cfe5ff"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Black Ground",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#000000",
+          "#0e0e0f",
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#48484a",
+          "#636366",
+          "#8e8e93"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Sheet Grey",
+        "canonical": "#1c1c1e",
+        "tonalRamp": [
+          "#000000",
+          "#0e0e0f",
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#48484a",
+          "#636366",
+          "#8e8e93"
+        ]
+      },
+      "sheet-raised": {
+        "role": "neutral",
+        "displayName": "Raised Grey",
+        "canonical": "#2c2c2e",
+        "tonalRamp": [
+          "#000000",
+          "#0e0e0f",
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#48484a",
+          "#636366",
+          "#8e8e93"
+        ]
+      },
+      "label-secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Label",
+        "canonical": "rgba(235,235,245,.85)",
+        "tonalRamp": [
+          "rgba(235,235,245,.3)",
+          "rgba(235,235,245,.4)",
+          "rgba(235,235,245,.5)",
+          "rgba(235,235,245,.62)",
+          "rgba(235,235,245,.7)",
+          "rgba(235,235,245,.8)",
+          "rgba(235,235,245,.85)",
+          "rgba(235,235,245,1)"
+        ]
+      },
+      "label-muted": {
+        "role": "neutral",
+        "displayName": "Muted Label",
+        "canonical": "rgba(235,235,245,.62)",
+        "tonalRamp": [
+          "rgba(235,235,245,.3)",
+          "rgba(235,235,245,.4)",
+          "rgba(235,235,245,.5)",
+          "rgba(235,235,245,.62)",
+          "rgba(235,235,245,.7)",
+          "rgba(235,235,245,.8)",
+          "rgba(235,235,245,.85)",
+          "rgba(235,235,245,1)"
+        ]
+      },
+      "wordmark-dim": {
+        "role": "neutral",
+        "displayName": "Wordmark Dim",
+        "canonical": "rgba(255,255,255,.5)",
+        "tonalRamp": [
+          "rgba(255,255,255,.07)",
+          "rgba(255,255,255,.14)",
+          "rgba(255,255,255,.2)",
+          "rgba(255,255,255,.28)",
+          "rgba(255,255,255,.4)",
+          "rgba(255,255,255,.5)",
+          "rgba(255,255,255,.6)",
+          "rgba(255,255,255,.8)"
+        ]
+      },
+      "fill-quiet": {
+        "role": "neutral",
+        "displayName": "Quiet Fill",
+        "canonical": "rgba(255,255,255,.07)",
+        "tonalRamp": [
+          "rgba(255,255,255,.07)",
+          "rgba(255,255,255,.14)",
+          "rgba(255,255,255,.2)",
+          "rgba(255,255,255,.28)",
+          "rgba(255,255,255,.4)",
+          "rgba(255,255,255,.5)",
+          "rgba(255,255,255,.6)",
+          "rgba(255,255,255,.8)"
+        ]
+      },
+      "fill": {
+        "role": "neutral",
+        "displayName": "Fill",
+        "canonical": "rgba(255,255,255,.14)",
+        "tonalRamp": [
+          "rgba(255,255,255,.07)",
+          "rgba(255,255,255,.14)",
+          "rgba(255,255,255,.2)",
+          "rgba(255,255,255,.28)",
+          "rgba(255,255,255,.4)",
+          "rgba(255,255,255,.5)",
+          "rgba(255,255,255,.6)",
+          "rgba(255,255,255,.8)"
+        ]
+      },
+      "fill-strong": {
+        "role": "neutral",
+        "displayName": "Strong Fill",
+        "canonical": "rgba(255,255,255,.2)",
+        "tonalRamp": [
+          "rgba(255,255,255,.07)",
+          "rgba(255,255,255,.14)",
+          "rgba(255,255,255,.2)",
+          "rgba(255,255,255,.28)",
+          "rgba(255,255,255,.4)",
+          "rgba(255,255,255,.5)",
+          "rgba(255,255,255,.6)",
+          "rgba(255,255,255,.8)"
+        ]
+      },
+      "on-focus-muted": {
+        "role": "neutral",
+        "displayName": "On-Focus Muted",
+        "canonical": "rgba(0,0,0,.6)",
+        "tonalRamp": [
+          "rgba(0,0,0,1)",
+          "rgba(0,0,0,.85)",
+          "rgba(0,0,0,.7)",
+          "rgba(0,0,0,.6)",
+          "rgba(0,0,0,.45)",
+          "rgba(0,0,0,.3)",
+          "rgba(0,0,0,.15)",
+          "rgba(0,0,0,.05)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "A title's name on Home's cover, its details page and the paused player; max two lines; replaced by the title logo when one exists."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Alert titles, the Settings help heading, the playing title in the player."
+      },
+      "headline-sm": {
+        "displayName": "Headline Small",
+        "purpose": "Player menu sheet headings and the playback error title."
+      },
+      "title-lg": {
+        "displayName": "Title Large",
+        "purpose": "Section titles on a title's page, the search results heading and query, the player clock."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Row headings on Home and browse screens."
+      },
+      "body-lg": {
+        "displayName": "Body Large",
+        "purpose": "Alert body, setting labels, alert actions, keyboard keys."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions, tab labels, button labels; the app default."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Card titles, counts, time deltas, player button labels."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Chips, setting details, episode subtitles, hints. The 24px floor."
+      }
+    },
+    "shadows": [
+      {
+        "name": "lift",
+        "value": "0 18px 40px rgba(0,0,0,.5)",
+        "purpose": "A focused button, row or alert action (--lift)."
+      },
+      {
+        "name": "tab-lift",
+        "value": "0 12px 28px rgba(0,0,0,.45)",
+        "purpose": "A focused capsule tab."
+      },
+      {
+        "name": "glass",
+        "value": "0 24px 60px rgba(0,0,0,.55)",
+        "purpose": "Under the sliding glass on artwork; 0 18px 44px rgba(0,0,0,.5) in the player."
+      },
+      {
+        "name": "floating-sheet",
+        "value": "0 30px 90px rgba(0,0,0,.6)",
+        "purpose": "Player menu sheet over video."
+      },
+      {
+        "name": "floating-small",
+        "value": "0 14px 34px rgba(0,0,0,.5)",
+        "purpose": "Scrub bubble and player messages."
+      }
+    ],
+    "motion": [
+      {
+        "name": "focus-ease",
+        "value": "cubic-bezier(.2,1.15,.4,1)",
+        "purpose": "tvOS-style spring for every focus lift, the sliding glass, switch knobs and the scrub head (220-280ms)."
+      },
+      {
+        "name": "slide-ease",
+        "value": "cubic-bezier(.22,1,.36,1)",
+        "purpose": "Row, grid and page scrolling, tab bar tuck, sheets, cover crossfade, screen fade-in (260-420ms)."
+      },
+      {
+        "name": "fade",
+        "value": "ease-out 150-220ms",
+        "purpose": "Opacity-only show/hide."
+      },
+      {
+        "name": "constraint",
+        "value": "transform, opacity only",
+        "purpose": "Chromium 76, no backdrop-filter; a large repaint costs ~1.3 s per frame on the TV. Remove animations / prefers-reduced-motion stop all motion except loaders."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "tv-1080p",
+        "value": "1920x1080 fixed"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Capsule Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab",
+      "description": "Centred capsule tabs across the top; current on a 14% fill, focused white and lifted.",
+      "html": "<nav class=\"ds-tabbar\"><span class=\"ds-tab ds-tab-icon\"><svg viewBox=\"0 0 24 24\" width=\"34\" height=\"34\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\"><circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"M15.5 15.5L21 21\"/></svg></span><span class=\"ds-tab ds-tab-current\">Home</span><span class=\"ds-tab\" tabindex=\"0\">Movies</span><span class=\"ds-tab\" tabindex=\"0\">Series</span><span class=\"ds-tab\" tabindex=\"0\">Live TV</span></nav>",
+      "css": ".ds-tabbar{display:flex;justify-content:center;align-items:center;padding:40px 0 30px;background:linear-gradient(180deg,rgba(0,0,0,.7),rgba(0,0,0,0));font-family:Inter,Arial,Helvetica,sans-serif;}.ds-tab{display:flex;align-items:center;height:64px;margin:0 5px;padding:0 30px;border-radius:32px;color:rgba(235,235,245,.62);font-size:29px;font-weight:500;transition:transform 260ms cubic-bezier(.2,1.15,.4,1);}.ds-tab-icon{padding:0 15px;}.ds-tab-current{background:rgba(255,255,255,.14);color:#fff;}.ds-tab:hover,.ds-tab:focus-visible{outline:none;background:#fff;color:#000;transform:scale(1.08);box-shadow:0 12px 28px rgba(0,0,0,.45);}"
+    },
+    {
+      "name": "Action Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Translucent title-page action that turns white and lifts on focus.",
+      "html": "<button class=\"ds-btn\"><svg viewBox=\"0 0 24 24\" width=\"32\" height=\"32\" fill=\"currentColor\"><path d=\"M7 4.5v15l12-7.5z\"/></svg>Play</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;height:80px;min-width:240px;padding:0 34px;border:none;border-radius:16px;background:rgba(255,255,255,.2);color:#fff;font-family:Inter,Arial,Helvetica,sans-serif;font-size:29px;font-weight:600;transition:transform 260ms cubic-bezier(.2,1.15,.4,1);}.ds-btn svg{margin-right:14px;}.ds-btn:hover,.ds-btn:focus-visible{outline:none;background:#fff;color:#000;transform:scale(1.08);box-shadow:0 18px 40px rgba(0,0,0,.5);}"
+    },
+    {
+      "name": "Alert Action",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Wide stacked action under a box-less alert; raised grey at rest.",
+      "html": "<button class=\"ds-alert-action\">Resume from 42:10</button>",
+      "css": ".ds-alert-action{display:flex;align-items:center;justify-content:center;width:600px;height:86px;border:none;border-radius:16px;background:#2c2c2e;color:#fff;font-family:Inter,Arial,Helvetica,sans-serif;font-size:31px;font-weight:600;transition:transform 260ms cubic-bezier(.2,1.15,.4,1);}.ds-alert-action:hover,.ds-alert-action:focus-visible{outline:none;background:#fff;color:#000;transform:scale(1.08);box-shadow:0 18px 40px rgba(0,0,0,.5);}"
+    },
+    {
+      "name": "Artwork Card with Sliding Glass",
+      "kind": "card",
+      "refersTo": "card-art",
+      "description": "Art-only card; on focus it scales 1.08 and the shared glass (rim plus sheen) sits on it. No ring on the card itself.",
+      "html": "<div class=\"ds-card\" tabindex=\"0\"><div class=\"ds-card-art\"><span class=\"ds-card-caption\">The Jungle Book</span></div><div class=\"ds-glass\"></div></div>",
+      "css": ".ds-card{position:relative;width:292px;height:164px;transition:transform 260ms cubic-bezier(.2,1.15,.4,1);font-family:Inter,Arial,Helvetica,sans-serif;}.ds-card-art{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden;border-radius:12px;background:linear-gradient(160deg,#3a3a3c,#1c1c1e);}.ds-card-caption{position:absolute;left:14px;right:14px;bottom:12px;color:#fff;font-size:24px;font-weight:600;text-shadow:0 2px 6px rgba(0,0,0,.9);}.ds-glass{position:absolute;top:0;right:0;bottom:0;left:0;border-radius:12px;border:2px solid rgba(255,255,255,.6);background:linear-gradient(150deg,rgba(255,255,255,.24),rgba(255,255,255,0) 55%);box-shadow:0 24px 60px rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity 180ms ease-out;}.ds-card:hover,.ds-card:focus-visible{outline:none;transform:scale(1.08);}.ds-card:hover .ds-glass,.ds-card:focus-visible .ds-glass{opacity:1;}"
+    },
+    {
+      "name": "Settings Row",
+      "kind": "custom",
+      "refersTo": "list-row",
+      "description": "Quiet-fill row; focus is a fill change to white without scaling, secondary text drops to 60% black.",
+      "html": "<div class=\"ds-row\" tabindex=\"0\"><div><div class=\"ds-row-label\">Remove animations</div><div class=\"ds-row-detail\">Stops all motion except loading</div></div><span class=\"ds-switch ds-switch-on\"></span></div>",
+      "css": ".ds-row{display:flex;align-items:center;justify-content:space-between;width:960px;min-height:92px;padding:16px 30px;border-radius:16px;background:rgba(255,255,255,.07);color:#fff;font-family:Inter,Arial,Helvetica,sans-serif;}.ds-row-label{font-size:31px;font-weight:500;}.ds-row-detail{margin-top:6px;color:rgba(235,235,245,.62);font-size:24px;}.ds-row:hover,.ds-row:focus-visible{outline:none;background:#fff;color:#000;box-shadow:0 18px 40px rgba(0,0,0,.5);}.ds-row:hover .ds-row-detail,.ds-row:focus-visible .ds-row-detail{color:rgba(0,0,0,.6);}.ds-switch{position:relative;width:78px;height:46px;border-radius:23px;background:rgba(120,120,128,.36);}.ds-switch:after{content:'';position:absolute;top:3px;left:3px;width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.3);transition:transform 260ms cubic-bezier(.2,1.15,.4,1);}.ds-switch-on{background:#30d158;}.ds-switch-on:after{transform:translateX(32px);}"
+    },
+    {
+      "name": "Genre Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Non-focusable fact tag on a title's page.",
+      "html": "<span class=\"ds-chip\">Comedy</span><span class=\"ds-chip\">1940</span>",
+      "css": ".ds-chip{display:inline-block;margin:0 10px 10px 0;padding:8px 18px;border-radius:24px;background:rgba(255,255,255,.14);color:rgba(235,235,245,.85);font-family:Inter,Arial,Helvetica,sans-serif;font-size:24px;font-weight:500;}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "Query field above the on-screen keyboard; blue blinking caret.",
+      "html": "<div class=\"ds-search\"><span>his girl</span><i class=\"ds-caret\"></i></div>",
+      "css": ".ds-search{display:flex;align-items:center;width:640px;height:96px;padding:0 30px;border-radius:16px;background:rgba(255,255,255,.14);color:#fff;font-family:Inter,Arial,Helvetica,sans-serif;font-size:38px;font-weight:600;}.ds-caret{display:inline-block;width:3px;height:46px;margin-left:6px;border-radius:2px;background:#0a84ff;animation:ds-caret 1s steps(1) infinite;}@keyframes ds-caret{50%{opacity:0;}}"
+    },
+    {
+      "name": "Player Control",
+      "kind": "button",
+      "refersTo": "player-control",
+      "description": "Round translucent player control; focused one scales 1.1 under the glass and shows its label.",
+      "html": "<button class=\"ds-pctl\"><svg viewBox=\"0 0 24 24\" width=\"40\" height=\"40\" fill=\"currentColor\"><path d=\"M7 4.5v15l12-7.5z\"/></svg></button>",
+      "css": ".ds-pctl{position:relative;width:80px;height:80px;border:none;border-radius:50%;background:rgba(255,255,255,.16);color:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;transition:transform 260ms cubic-bezier(.2,1.15,.4,1);}.ds-pctl:hover,.ds-pctl:focus-visible{outline:none;color:#fff;transform:scale(1.1);border:2px solid rgba(255,255,255,.6);background:linear-gradient(150deg,rgba(255,255,255,.26),rgba(255,255,255,0) 55%),rgba(255,255,255,.16);box-shadow:0 18px 44px rgba(0,0,0,.5);}"
+    },
+    {
+      "name": "Menu Sheet",
+      "kind": "custom",
+      "refersTo": "sheet",
+      "description": "Player menu: opaque dark sheet with 40px corners floating at the right, rows on quiet fill.",
+      "html": "<div class=\"ds-sheet\"><div class=\"ds-sheet-title\">Subtitles</div><div class=\"ds-sheet-sub\">Language and caption size</div><div class=\"ds-sheet-row\" tabindex=\"0\">English (auto)</div><div class=\"ds-sheet-row\" tabindex=\"0\">Off</div></div>",
+      "css": ".ds-sheet{width:780px;padding:52px 44px 36px;border-radius:40px;background:#1c1c1e;box-shadow:0 30px 90px rgba(0,0,0,.6);color:#fff;font-family:Inter,Arial,Helvetica,sans-serif;}.ds-sheet-title{font-size:48px;font-weight:700;letter-spacing:-.3px;}.ds-sheet-sub{margin:6px 0 28px;color:rgba(235,235,245,.62);font-size:26px;}.ds-sheet-row{height:92px;margin-bottom:12px;padding:0 28px;border-radius:18px;background:rgba(255,255,255,.07);color:rgba(235,235,245,.85);font-size:30px;font-weight:500;line-height:92px;transition:transform 260ms cubic-bezier(.2,1.15,.4,1);}.ds-sheet-row:hover,.ds-sheet-row:focus-visible{outline:none;color:#fff;transform:scale(1.02);border:2px solid rgba(255,255,255,.6);background:linear-gradient(150deg,rgba(255,255,255,.26),rgba(255,255,255,0) 55%),rgba(255,255,255,.07);}"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "Bottom-centred raised grey capsule message that rises 18px into place.",
+      "html": "<div class=\"ds-toast\">Added to My List</div>",
+      "css": ".ds-toast{display:inline-block;padding:20px 38px;border-radius:40px;background:rgba(44,44,46,.97);box-shadow:0 18px 40px rgba(0,0,0,.5);color:#fff;font-family:Inter,Arial,Helvetica,sans-serif;font-size:27px;font-weight:500;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lifted Card",
+    "overview": "**Creative North Star: \"The Lifted Card\"**\n\nCouch TV is the Apple TV app on tvOS, rebuilt for a 2021 Samsung TV that cannot blur. The world is black, and the artwork is the colour: the focused title's backdrop bleeds in from the top right behind a black shade, rows of art-only cards run off the right edge, and everything else is white type and translucent white fills. Chrome is a capsule tab bar centred across the top that tucks away as you move down and returns when focused.\n\nFocus is the whole personality. It is physical: a tab, button or row turns solid white with black text and lifts on a spring with a soft shadow beneath it; artwork never gets a white fill or a ring of its own but receives one sliding glass layer (a light rim plus a diagonal sheen) that travels from card to card. The same glass moves across the player's round controls and its menu rows, so the player feels like the same world. Density is tvOS-low: few, large things, legible from 3 m, sentence case throughout.\n\nThe platform shapes the look as much as the reference does. Chromium 76 has no `backdrop-filter`, and a large repaint costs about 1.3 s per frame on this TV, so tvOS \"materials\" are faked with translucent white over black and near-opaque greys for sheets, and only transform and opacity ever animate. The user rejected the earlier left-rail look and the generic streaming dashboard: no side rail, no per-card rings, no uppercase eyebrows, no boxed panels.",
+    "keyCharacteristics": [
+      "Black ground; artwork is the only colour on a browse screen.",
+      "Capsule tab bar across the top, not a side rail.",
+      "Focus = white fill, black text, 1.08 spring lift, soft shadow; artwork focus = the sliding glass.",
+      "Inter in a tvOS ramp, bold tight titles, sentence case, no tracked caps.",
+      "Continuous-looking corners scaled to the object: 12 cards, 16 controls, 32 capsules, 40 sheets.",
+      "Transform and opacity are the only animated properties."
+    ],
+    "rules": [
+      {
+        "name": "The White Is Focus Rule",
+        "body": "A solid white fill means \"this has focus\" (or is a progress fill). Never use a white fill for a resting control, a selected state or an emphasis badge at large size; the current tab is a 14% fill, not white.",
+        "section": "colors"
+      },
+      {
+        "name": "The Artwork Is The Colour Rule",
+        "body": "Chrome stays monochrome. Hue comes from titles' artwork and from the four system colours in their named roles; there is no brand accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The 24px Floor Rule",
+        "body": "No text renders below 24px at 1080p; that is the product's legibility minimum at 3 m.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Every label, heading and hint is sentence case at normal tracking. Titles track slightly tighter (-0.3 to -1.5px); nothing is uppercase and letter-spaced.",
+        "section": "typography"
+      },
+      {
+        "name": "The Room To Lift Rule",
+        "body": "Every scrolling viewport leaves margin around its cards for a 1.08 scale and its shadow; nothing focusable sits flush against a clipping edge.",
+        "section": "layout"
+      },
+      {
+        "name": "The No Blur Material Rule",
+        "body": "There is no `backdrop-filter` on this TV. tvOS materials are faked: 7 to 20% white fills for controls, 97% opaque greys for sheets. A static, already-blurred backdrop on its own layer (a title page's soft hero) is allowed; live blur behind moving content is not.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Shadow Means Lifted Rule",
+        "body": "A shadow appears only on something focused or floating over video. Resting cards and rows have none.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do show focus as a white fill with black text and a 1.08 spring lift on tabs, buttons and rows, and as the sliding glass on artwork and player controls.",
+      "Do fake materials with translucent white over black (7%, 14%, 20%) and 97% opaque greys for floating sheets.",
+      "Do animate only `transform` and `opacity`; size the glass and progress bars with `scale()`, never width or height.",
+      "Do let a title's artwork bleed in from the top right under black shades, and use its logo in place of the display title when available.",
+      "Do keep every text at 24px or larger, sentence case, on the Inter ramp.",
+      "Do use iOS green and red only for On and status values, with the deep variants on a focused white row."
+    ],
+    "donts": [
+      "Don't use a left or side navigation rail; navigation is the capsule tab bar across the top.",
+      "Don't draw a ring or border on each focused card; one glass layer slides between them.",
+      "Don't use uppercase, letter-spaced eyebrows or kickers above titles.",
+      "Don't box content in bordered panels; group with fills, spacing and sheets.",
+      "Don't use `backdrop-filter` or animate a large area's paint (blur, gradients, width, height); a large repaint costs about 1.3 s on this TV.",
+      "Don't fill a resting or merely selected element with solid white; white is reserved for focus."
+    ]
+  }
+}

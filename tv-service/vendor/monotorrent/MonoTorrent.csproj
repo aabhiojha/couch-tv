@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- MonoTorrent 3.0.2 (release-v3.0.2, e78faebd) built as one assembly. See README.md for local patches. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>MonoTorrent</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <NoWarn>1701;1702;1591;0419;CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8619;CS8620;CS8625;CS8765;CS8767</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <Version>3.0.2</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ReusableTasks" Version="4.0.0" />
+    <PackageReference Include="StandardSocketsHttpHandler" Version="2.2.0.4" />
+    <PackageReference Include="Mono.Nat" Version="3.0.0" />
+  </ItemGroup>
+</Project>
