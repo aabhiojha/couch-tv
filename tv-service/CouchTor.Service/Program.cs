@@ -4,11 +4,12 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchTor.Streams;
 using Tizen.Applications;
 
 namespace CouchTor
 {
-    /// <summary>Tizen service entry point: starts the HTTP API on :11470 (torrents and the trailer page) and the torrent engine.</summary>
+    /// <summary>Tizen service entry point: starts the HTTP API on :11470 (torrents and the stream server) and the torrent engine.</summary>
     class App : ServiceApplication
     {
         public const int Port = 11470;
@@ -41,7 +42,17 @@ namespace CouchTor
                     }
                 }) { IsBackground = true, Name = "log saver" }.Start();
                 engine = new TorrentEngine(data, Log);
-                http = new HttpService(engine, Log);
+                // The stream server (films and episodes from VixSrc and VidApi) shares the port: the app asks one address.
+                // One connection pool for the relay and the sports resolver: the resolver's own playlist request warms
+                // the connection the relay then reuses.
+                var handler = BrowserTls.Handler();
+                var upstream = new Upstream(handler);
+                var streams = new StreamServer(new SourceFinder(new IStreamProvider[] { new VixSrc(upstream), new VidApi(upstream) }, Log), upstream, Log);
+                // Sports: Streamed's schedule, resolved on this TV (its stream URLs only play from the IP that resolved them).
+                var catalog = new Sports.SportsCatalog(upstream, Log, scores: new Sports.SportsScores(upstream, Log));
+                var sports = new Sports.SportsRoutes(catalog, new Sports.StreamedResolver(Log, handler), streams, Log);
+                _ = catalog.WarmAsync();
+                http = new HttpService(engine, Log, new Sports.Routes(streams, sports));
                 http.Start(IPAddress.Any, Port);
                 Log.Add("listening on :" + Port + ", .NET " + Environment.Version + ", " + Environment.ProcessorCount + " cpus, data " + data);
                 _ = engine.StartAsync();

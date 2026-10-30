@@ -6,13 +6,11 @@
   try { tvIp = root.webapis.network.getIp() || ''; } catch (e) { /* desktop or unavailable network */ }
   var TV_SERVICE = !override && !!tvIp;
   var TORRENT_SERVER = override ? override.replace(/\/+$/, '') : 'http://' + (tvIp || '127.0.0.1') + ':11470';
-  // Films and episodes come from the stream server set in COUCH_SECRETS.provider (docs/streaming-provider.md);
-  // Couch TV ships none.
-  var PROVIDER = String(root.COUCH_SECRETS && root.COUCH_SECRETS.provider || '').replace(/\/+$/, '');
-  function addonUrls() {
-    var urls = root.COUCH_SECRETS && root.COUCH_SECRETS.addons;
-    return Array.isArray(urls) ? urls : [];
-  }
+  // Films and episodes are found by the stream server in the same TV service (docs/streaming-provider.md);
+  // COUCH_SECRETS.provider overrides it, and the desktop harness uses the laptop's CinePro.
+  var providerOverride = root.COUCH_SECRETS && root.COUCH_SECRETS.provider;
+  var PROVIDER_ON_TV = !providerOverride && TV_SERVICE;
+  var PROVIDER = providerOverride ? providerOverride.replace(/\/+$/, '') : PROVIDER_ON_TV ? TORRENT_SERVER : 'http://192.168.1.34:8788';
   var torrentWait = null;
   function heartbeat(timeoutMs) {
     return new Promise(function (resolve) {
@@ -207,8 +205,10 @@
     var path = item.mediaType === 'tv'
       ? '/v1/tv/' + encodeURIComponent(item.tmdbId) + '/seasons/' + encodeURIComponent(video.season) + '/episodes/' + encodeURIComponent(video.episode)
       : '/v1/movies/' + encodeURIComponent(item.tmdbId);
-    if (!PROVIDER) return Promise.resolve([]);
-    return fetch(PROVIDER + path).catch(function () {
+    // The TV's service may still be starting when the first title is played.
+    return (PROVIDER_ON_TV ? waitForTorrent() : Promise.resolve(true)).then(function () {
+      return fetch(PROVIDER + path);
+    }).catch(function () {
       throw new Error("Can't reach the stream server");
     }).then(function (response) {
       if (!response.ok) throw new Error('Provider HTTP ' + response.status);
@@ -218,10 +218,10 @@
         return (source.type === 'hls' || source.type === 'mp4') &&
           source.url && source.url.indexOf(PROVIDER + '/v1/proxy?') === 0;
       }).map(function (source) {
-        return { url: source.url.replace('/v1/proxy?', '/v1/proxy.m3u8?') };
+        return { url: source.url.replace('/v1/proxy?', '/v1/proxy.m3u8?'), preferred: source.provider && source.provider.id === 'vixsrc' };
       }).filter(function (source) {
         return (exclude || []).indexOf(source.url) < 0;
-      });
+      }).sort(function (a, b) { return b.preferred - a.preferred; });
       if (!sources.length) throw new Error(exclude && exclude.length ? 'No other stream worked for this title' : 'No stream found for this title');
       return Promise.all(sources.map(function (source) {
         return qualities(source.url).catch(function () { return []; });
@@ -242,7 +242,6 @@
   // mode: 'torrent' or 'web' (asked before playing) puts that family first; without it Settings › Source order
   // decides. Either way the other family is the fallback when the first has nothing that plays.
   function scrape(item, video, quality, exclude, onStatus, mode) {
-    if (!PROVIDER && !addonUrls().length) return Promise.reject(new Error('No sources set up: add a stream server or add-ons to js/secrets.js'));
     var providerError;
     var provider = providerCandidates(item, video, quality, exclude).catch(function (error) {
       providerError = error;
@@ -251,8 +250,9 @@
     var addons = Promise.resolve([]);
     if (root.Addons && item.imdbId) {
       addons = Promise.resolve().then(function () {
+        var urls = root.COUCH_SECRETS && root.COUCH_SECRETS.addons;
         var series = item.mediaType === 'tv';
-        return root.Addons.streams(addonUrls(),
+        return root.Addons.streams(Array.isArray(urls) ? urls : ['https://torrentio.strem.fun'],
           series ? 'series' : 'movie', item.imdbId + (series ? ':' + video.season + ':' + video.episode : ''));
       }).then(function (streams) {
         return root.Addons.rank(streams.filter(function (s) { return s.playable && !(TV_SERVICE && s.needsTranscode); }), quality || 'best').slice(0, 5).map(function (s) {
@@ -277,7 +277,7 @@
     var providerFirst = mode ? mode === 'web' : root.Data && root.Data.settings().sourceOrder === 'provider-first';
     var first = providerFirst ? provider : addons, second = providerFirst ? addons : provider;
     // The preferred family plays as soon as it has a candidate: the other one can take 15 s to fail
-    // (a stream server with no sources). It still counts as one fallback, looked up again on the next attempt.
+    // (CinePro with no sources). It still counts as one fallback, looked up again on the next attempt.
     return first.then(function (preferred) {
       var ready = untried(preferred);
       if (ready.length) return choose(ready, 1);
@@ -344,14 +344,13 @@
   // Reachability of the provider server for Settings: resolves { ok, ms }, never rejects. The TV's own service is
   // started if it isn't running (the TV can stop it in standby or when memory runs low).
   function ping(torrent) {
-    if (!torrent && !PROVIDER) return Promise.resolve({ ok: false, ms: 0, host: 'Not set up' });
-    var base = torrent ? TORRENT_SERVER : PROVIDER, onTv = torrent && TV_SERVICE;
+    var base = torrent ? TORRENT_SERVER : PROVIDER, onTv = torrent ? TV_SERVICE : PROVIDER_ON_TV;
     var started = Date.now();
     var timeout = new Promise(function (resolve) { setTimeout(function () { resolve(false); }, onTv ? 11000 : 4000); });
     var check = (onTv ? waitForTorrent() : Promise.resolve(true)).then(function () {
       return torrent ? heartbeat(4000) : fetch(base + '/').then(function (r) { return r.ok; }, function () { return false; });
     });
-    return Promise.race([check, timeout]).then(function (ok) { return { ok: ok, ms: Date.now() - started, host: onTv ? 'On this TV' : base.replace(/^https?:\/\//, '') }; });
+    return Promise.race([check, timeout]).then(function (ok) { return { ok: ok, ms: Date.now() - started, host: (torrent ? TV_SERVICE : PROVIDER_ON_TV) ? 'On this TV' : base.replace(/^https?:\/\//, '') }; });
   }
   var api = {
     list: list,
@@ -373,7 +372,7 @@
       });
     },
     detail: detail, scrape: scrape, images: images, ping: ping, startTorrentService: startTorrentService, waitForTorrent: waitForTorrent,
-    // The TV's own service (torrents and the trailer page), or '' off the TV.
+    // The TV's own service (torrents, web streams and sports), or '' off the TV.
     tvService: function () { return TV_SERVICE ? TORRENT_SERVER : ''; }
   };
   root.PStream = api;

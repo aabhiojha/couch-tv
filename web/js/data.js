@@ -271,6 +271,11 @@ window.Data = (function () {
     return best;
   }
 
+  // Sports go through the TV's own service unless a relay is configured: start it first if it has stopped.
+  function onTvService(config) {
+    return config.sportsRelay || !PStream.tvService() ? Promise.resolve() : PStream.waitForTorrent();
+  }
+
   function inMyList(id) {
     return library.myList.some(function (i) { return i.id === id; });
   }
@@ -561,20 +566,22 @@ window.Data = (function () {
 
     // Optional COUCH_SECRETS.playlists: M3U URLs (provider playlists can carry credentials).
     liveChannels: function () { return Live.channels(window.COUCH_SECRETS && window.COUCH_SECRETS.playlists); },
-    // Sports schedules and streams come from the relay set in COUCH_SECRETS.sportsRelay (or a …/live.m3u
-    // playlist); without one, only the channels in the playlists.
+    // Sports schedules and streams come from the TV's own service (resolved on the TV: stream URLs only play from
+    // the IP that resolved them); COUCH_SECRETS.sportsRelay or a …/live.m3u playlist points elsewhere.
     sports: function () {
       var config = window.COUCH_SECRETS || {};
-      return Live.sports(config.playlists, config.sportsRelay || '');
+      return onTvService(config).then(function () {
+        return Live.sports(config.playlists, config.sportsRelay || PStream.tvService());
+      });
     },
 
-    // The sports relay's schedule and resolver state (Live.health reads it); test resolves an on-air feed
-    // first, which can take most of a minute. Never rejects: null without a relay, { down: true } without an answer.
+    // The TV service's sports schedule and resolver state (Live.health reads it); test resolves an on-air feed
+    // first, which can take most of a minute. Never rejects: null off the TV, { down: true } without an answer.
     sportsHealth: function (test) {
       var config = window.COUCH_SECRETS || {};
-      var base = (config.sportsRelay || '').replace(/\/$/, '');
+      var base = (config.sportsRelay || PStream.tvService()).replace(/\/$/, '');
       if (!base) return Promise.resolve(null);
-      return Promise.resolve().then(function () {
+      return onTvService(config).then(function () {
         var controller = new AbortController();
         var timer = setTimeout(function () { controller.abort(); }, test ? 70000 : 4000);
         return fetch(base + '/sports/health' + (test ? '?test=1' : ''), { signal: controller.signal }).then(function (response) {
