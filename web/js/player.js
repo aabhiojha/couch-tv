@@ -12,6 +12,7 @@
   var ROW_PITCH = 104;    // panel row height + margin (player.css)
   var BUTTON_PITCH = 108; // control button width + margin (player.css)
   var HEADER_PITCH = 80;
+  var EPISODE_PITCH = 196; // episode card height + margin (player.css)
   var PANEL_VIEW = 716;   // visible height of the panel list (player.css)
   var KEYS = [13, 10252, 415, 19, 37, 38, 39, 40, 412, 417, 10009, 413];
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -395,8 +396,9 @@
     return LANGUAGES[key] || (key && key !== 'und' ? code.toUpperCase() : 'Track ' + n);
   }
 
-  function buildPanel(root, heading, entries) {
-    var panel = { el: element('div', 'player-panel', root), entries: entries, focusable: [], offsets: [], height: 0 };
+  function buildPanel(root, heading, entries, kind) {
+    var panel = { el: element('div', 'player-panel', root), entries: entries, focusable: [], offsets: [], height: 0,
+      kind: kind ? ' player-panel-' + kind : '', pitch: kind === 'episodes' ? EPISODE_PITCH : ROW_PITCH };
     var inner = element('div', 'player-panel-inner', panel.el);
     panel.heading = element('div', 'player-panel-heading', inner);
     panel.heading.textContent = heading;
@@ -413,17 +415,27 @@
       }
       entry.node = element('div', 'player-row', panel.list);
       if (entry.episode !== undefined) {
-        var line = element('div', 'player-row-label', entry.node);
-        element('span', '', line).textContent = entry.label;
+        // A card: the still with how much was watched, then number · runtime, title and the synopsis.
+        var thumb = element('div', 'player-ep-thumb', entry.node);
+        if (entry.still) { entry.img = element('img', 'player-ep-img', thumb); entry.img.alt = ''; }
+        if (entry.progress > 0) {
+          var bar = element('div', 'player-ep-bar', thumb);
+          element('div', 'player-ep-bar-fill', bar).style.transform = 'scaleX(' + Math.min(1, entry.progress).toFixed(3) + ')';
+        }
+        var body = element('div', 'player-ep-body', entry.node);
+        var line = element('div', 'player-row-label', body);
+        element('span', '', line).textContent = [entry.label, entry.runtime].filter(Boolean).join('  ·  ');
         if (entry.current) element('span', 'player-row-tag', line).textContent = 'Now Playing';
-        element('div', 'player-row-title', entry.node).textContent = entry.title;
+        else if (entry.progress >= 0.95) element('span', 'player-row-tag player-row-tag-dim', line).textContent = 'Watched';
+        element('div', 'player-row-title', body).textContent = entry.title || entry.label;
+        if (entry.description) element('div', 'player-ep-desc', body).textContent = entry.description;
       } else {
         element('div', 'player-row-text', entry.node).textContent = entry.label;
         icon('check', 'player-row-check', entry.node);
       }
       panel.focusable.push(entry);
       panel.offsets.push(panel.height);
-      panel.height += ROW_PITCH;
+      panel.height += panel.pitch;
     });
     // The same glass as on the app's cards, sliding between rows; it scrolls with the list, so placing it
     // needs only the row offsets already known here.
@@ -631,10 +643,11 @@
     buildSubtitles();
     if (state.episodes.length) {
       state.panels.episodes = buildPanel(root, 'Episodes', state.episodes.map(function (episode, index) {
-        return { episode: index, label: episode.label || 'Episode ' + (index + 1),
-          title: episode.title || '', current: !!episode.current };
-      }));
-      state.panels.episodes.sub.textContent = state.episodes.length + ' episodes';
+        return { episode: index, label: episode.label || 'Episode ' + (index + 1), title: episode.title || '',
+          current: !!episode.current, still: episode.still || '', description: episode.description || '',
+          runtime: episode.runtime || '', progress: Number(episode.progress) || 0 };
+      }), 'episodes');
+      state.panels.episodes.sub.textContent = (opts.season ? 'Season ' + opts.season + '  ·  ' : '') + state.episodes.length + ' episodes';
     }
 
     if (typeof opts.loadQualities === 'function') {
@@ -717,7 +730,7 @@
       Object.keys(state.panels).forEach(function (name) {
         var panel = state.panels[name];
         var open = state.panel === name;
-        setClass(panel.el, 'player-panel' + (open ? ' player-panel-open' : ''));
+        setClass(panel.el, 'player-panel' + panel.kind + (open ? ' player-panel-open' : ''));
         if (!open) return;
         panel.focusable.forEach(function (entry, index) {
           var selected = entry.size ? entry.size === state.size : entry.audio !== undefined ? entry.audio === state.audioIndex :
@@ -727,8 +740,8 @@
         });
         setTransform(panel.glass, 'translateY(' + panel.offsets[state.panelIndex] + 'px) scale(1.02)');
         // Snap to whole rows so the top row is never cut in half; the last row has no margin below.
-        var middle = panel.offsets[state.panelIndex] + ROW_PITCH / 2 - PANEL_VIEW / 2;
-        var scroll = Math.max(0, Math.min(panel.height - 12 - PANEL_VIEW, Math.round(middle / ROW_PITCH) * ROW_PITCH));
+        var middle = panel.offsets[state.panelIndex] + panel.pitch / 2 - PANEL_VIEW / 2;
+        var scroll = Math.max(0, Math.min(panel.height - (panel.pitch === EPISODE_PITCH ? 16 : 12) - PANEL_VIEW, Math.round(middle / panel.pitch) * panel.pitch));
         setTransform(panel.list, 'translateY(' + -Math.round(scroll) + 'px)');
       });
       setClass(state.caption, 'player-caption player-caption-' + state.size);
@@ -950,6 +963,10 @@
     function openPanel(name) {
       if (!state.panels[name]) return;
       var panel = state.panels[name];
+      if (!panel.loaded) {
+        panel.loaded = true;
+        panel.focusable.forEach(function (entry) { if (entry.img) entry.img.src = entry.still; });
+      }
       state.panel = name;
       state.panelIndex = 0;
       panel.focusable.forEach(function (entry, index) {

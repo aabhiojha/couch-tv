@@ -94,11 +94,15 @@
       description: item.description || '',
       rating: item.rating || 0,
       year: item.year || '',
+      season: item.isSeries ? video.season : 0,
       episodes: item.isSeries ? (item.videos || []).filter(function (v) {
         return v.season === video.season;
       }).map(function (v) {
-        return { label: episodeLabel({ season: v.season, episode: v.episode, title: '' }).replace(/ · $/, ''),
-          title: v.title || v.name || '', current: v.url === video.url };
+        var seen = Data.getProgress(v.url), minutes = Math.round((v.durationSec || 0) / 60);
+        return { label: 'Episode ' + v.episode, title: v.title || v.name || '', current: v.url === video.url,
+          still: v.still || '', description: v.description || '',
+          runtime: minutes >= 60 ? Math.floor(minutes / 60) + 'h ' + (minutes % 60 ? minutes % 60 + 'm' : '') : minutes ? minutes + 'm' : '',
+          progress: seen && seen.durationSec ? seen.positionSec / seen.durationSec : 0 };
       }) : null,
       onEpisode: function (index) {
         var season = (item.videos || []).filter(function (v) { return v.season === video.season; });
