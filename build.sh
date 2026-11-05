@@ -3,6 +3,7 @@
 # Usage: ./build.sh            test + check
 #        TV=<TV IP> [PROFILE=<certificate profile>] ./build.sh install
 #                              also package the app with its TV service, sign it, install and launch it on the TV (docs/deployment.md)
+#        ./build.sh package    the unsigned package for a release (no secrets; an installer signs it per TV)
 set -e
 cd "$(dirname "$0")"
 PROFILE=${PROFILE:-couch}
@@ -22,8 +23,8 @@ node tests/test_live_playback.js
 python3 tests/test_live_relay.py
 node tools/check-js.js
 
-[ "$1" = install ] || exit 0
-: "${TV:?set TV to the IP of the TV, for example TV=192.168.1.20 ./build.sh install}"
+case "$1" in install|package) ;; *) exit 0 ;; esac
+[ "$1" = package ] || : "${TV:?set TV to the IP of the TV, for example TV=192.168.1.20 ./build.sh install}"
 # One package: the TV service (tv-service/, docs/tv-torrent-service.md) at the root and the web app in res/wgt
 # (Tizen's hybrid layout), so the app can launch its service. Signed as a tpk, installed as a wgt.
 VERSION=$(sed -n 's/.*id="[^"]*" version="\([0-9.]*\)".*/\1/p' web/config.xml)
@@ -32,7 +33,18 @@ rm -rf build/pkg build/couchtv.wgt && mkdir -p build/pkg/res/wgt
 cp -r tv-service/out/service/. build/pkg/
 sed -i "s/<manifest package=\"CouchTV001\" version=\"[0-9.]*\"/<manifest package=\"CouchTV001\" version=\"$VERSION\"/" build/pkg/tizen-manifest.xml
 cp -r web/. build/pkg/res/wgt/
-rm -f build/pkg/res/wgt/dev.html build/pkg/res/wgt/player-dev.html build/pkg/res/wgt/js/dev-main.js build/pkg/res/wgt/js/mock-data.js
+rm -f build/pkg/res/wgt/dev.html build/pkg/res/wgt/player-dev.html build/pkg/res/wgt/js/dev-main.js build/pkg/res/wgt/js/mock-data.js \
+  build/pkg/res/wgt/js/dev/sports-sample.json
+
+# ./build.sh package: the unsigned package for a GitHub release, which an installer such as Apps2Samsung signs
+# for each TV. It carries the template secrets.js (empty TMDB key, for the installer to fill in), never yours.
+if [ "$1" = package ]; then
+  cp web/js/secrets.example.js build/pkg/res/wgt/js/secrets.js
+  rm -f build/CouchTV.wgt
+  (cd build/pkg && zip -qr ../CouchTV.wgt . -x '*/.*' '.*')
+  echo "built build/CouchTV.wgt (unsigned, version $VERSION)"
+  exit 0
+fi
 (cd build/pkg && zip -qr ../couchtv.tpk . -x '*/.*' '.*')  # dotfiles aren't signed
 $TIZEN package -t tpk -s "$PROFILE" -- "$PWD/build/couchtv.tpk" >/dev/null
 mv build/couchtv.tpk build/couchtv.wgt

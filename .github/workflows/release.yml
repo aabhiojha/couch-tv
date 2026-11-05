@@ -1,0 +1,30 @@
+name: release
+# A version tag (v0.5.0) builds the unsigned package (web app + TV service, template secrets.js with an empty TMDB
+# key) and attaches it to a GitHub release as CouchTV.wgt, its only asset, for installers such as Apps2Samsung that
+# sign it for each TV. See docs/deployment.md.
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: npm install --no-save acorn@8.12.1
+      - run: dotnet test tv-service/CouchTor.Tests/CouchTor.Tests.csproj
+      - run: DOTNET=dotnet ./build.sh package
+      - name: Check the tag matches the app's version
+        run: |
+          version=$(sed -n 's/.*id="[^"]*" version="\([0-9.]*\)".*/\1/p' web/config.xml)
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "tag $GITHUB_REF_NAME but config.xml says $version"; exit 1; }
+      - run: gh release create "$GITHUB_REF_NAME" build/CouchTV.wgt --title "Couch TV $GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

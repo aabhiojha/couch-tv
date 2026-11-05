@@ -161,9 +161,10 @@
     Data.recordError('Unhandled: ' + (e.reason && e.reason.message || e.reason));
   });
 
-  // Play on the remote also starts titles from Home, Browse and Details (the player registers the rest).
+  // Play on the remote also starts titles from Home, Browse and Details (the player registers the rest); the digit
+  // keys type on the setup screen and jump through a film in the player.
   if (window.tizen && tizen.tvinputdevice) {
-    ['MediaPlayPause', 'MediaPlay'].forEach(function (key) {
+    ['MediaPlayPause', 'MediaPlay', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach(function (key) {
       try { tizen.tvinputdevice.registerKey(key); } catch (error) { /* already registered */ }
     });
   }

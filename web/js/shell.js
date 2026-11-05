@@ -567,7 +567,8 @@
           if (stack[s].name === 'details' && stack[s].screen.refresh) stack[s].screen.refresh();
       });
     var start = data.settings().startScreen;
-    go(/^(movies|series|live)$/.test(start) ? start : 'home');
+    if (data.needsSetup && data.needsSetup()) go('setup');
+    else go(/^(movies|series|live)$/.test(start) ? start : 'home');
   }
   function register(name, factory) {
     registry[name] = factory;

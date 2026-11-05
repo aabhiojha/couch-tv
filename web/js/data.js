@@ -32,6 +32,11 @@ window.Data = (function () {
 
   var listeners = [];
   var library = loadLibrary();
+  // A key typed on the setup screen stands in for an empty one in secrets.js (PStream reads COUCH_SECRETS).
+  if (library.settings.tmdbKey && !(window.COUCH_SECRETS && COUCH_SECRETS.tmdbKey)) {
+    window.COUCH_SECRETS = window.COUCH_SECRETS || {};
+    COUCH_SECRETS.tmdbKey = library.settings.tmdbKey;
+  }
   var art = loadArt();       // id -> { l: logo path, b: textless backdrop path, at }
   var artQueue = [];
   var artActive = 0;
@@ -560,6 +565,16 @@ window.Data = (function () {
     },
 
     setSetting: function (key, value) { library.settings[key] = value; save(); },
+    // The TMDB key: secrets.js's when it has one, else the one typed on the setup screen (kept with the settings).
+    tmdbKey: function () { return (window.COUCH_SECRETS && COUCH_SECRETS.tmdbKey) || library.settings.tmdbKey || ''; },
+    setTmdbKey: function (value) {
+      library.settings.tmdbKey = value;
+      window.COUCH_SECRETS = window.COUCH_SECRETS || {};
+      COUCH_SECRETS.tmdbKey = value;
+      this.clearCache();
+      save();
+    },
+    needsSetup: function () { return !this.tmdbKey(); },
 
     // Forgets cached Home rows and logos/backdrops; they are fetched again on the next visit.
     clearCache: function () {
