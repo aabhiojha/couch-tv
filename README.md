@@ -3,7 +3,7 @@
 [![check](https://github.com/aabhiojha/couch-tv/actions/workflows/check.yml/badge.svg)](https://github.com/aabhiojha/couch-tv/actions/workflows/check.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A good-looking app for watching films, series and live sports on a Samsung smart TV, all with the remote.
+A good-looking app for watching films, series and live sports on a Samsung smart TV.
 
 ![Couch TV's Home screen](docs/screenshots/home.png)
 
