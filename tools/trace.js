@@ -10,6 +10,7 @@ const SCENARIOS = {
   'home rows': ["Shell.go('home')", [D, D, D, D, D, U, U, U, U, U]],
   'tab bar': ["Shell.go('home')", [U, R, R, R, R, L, L, L, L, D]],
   'movies grid': ["Shell.go('movies')", [D, D, D, D, D, D, R, R, U, U, U, U]],
+  'sports list': ["Shell.go('live')", [D, D, D, D, D, D, D, D, U, U, U, U, U, U, U, U]],
   idle: ["Shell.go('home')", []], // nothing pressed for 4 s: should cost nothing
   'match page': ["Shell.go('match',{item:{id:'qa',kind:'result',title:'Como vs Manchester United',sport:'Football',startsAt:Date.parse('2026-10-21T16:45Z'),streams:[],score:{state:'post',line:'COMO 4 – 1 MAN',summary:'',crests:[]},espn:{sport:'soccer',league:'uefa.champions',event:'401915395'}}})", [D, D, D, D, D, D, U, U, U, U, U, U]],
 };

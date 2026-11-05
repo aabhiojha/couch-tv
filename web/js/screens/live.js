@@ -185,7 +185,8 @@
       var bits = [];
       if (day.key === 'live') bits.push(liveCount ? liveCount + ' live now' : 'Nothing live right now');
       else bits.push(Live.format('longDay', new Date(day.from)), count + (count === 1 ? ' game' : ' games') + (liveCount ? ' · ' + liveCount + ' live' : ''));
-      if (!fixtures && result) bits.push('Fixtures unavailable; showing what has a stream');
+      if (!fixtures && !result) bits = [day.key === 'live' ? 'Live' : Live.format('longDay', new Date(day.from)), 'Couldn’t load'];
+      else if (!fixtures && result) bits.push('Fixtures unavailable; showing what has a stream');
       else if (fixtures && !result) bits.push('Streams unavailable right now');
       else if (result && result.message) bits.push(result.message);
       status.textContent = bits.join('  ·  ');
@@ -207,7 +208,7 @@
         empty.hidden = true;
         for (var s = 0; s < 6; s++) {
           var sk = kit.el('div', 'fx-row fx-skeleton');
-          sk.style.transform = 'translate3d(0,' + (s * ROW + GROUP) + 'px,0)';
+          sk.style.top = (s * ROW + GROUP) + 'px';
           listTrack.appendChild(sk);
         }
         paintPanel(null);
@@ -227,12 +228,12 @@
         var first = groups[k][0], head = kit.el('div', 'fx-group' + (first.league === Espn.NEPAL_LEAGUE ? ' fx-group-nepal' : ''));
         head.appendChild(kit.el('span', 'fx-group-name', first.competition));
         head.appendChild(kit.el('span', 'fx-group-meta', first.sport + (followed().indexOf(k) >= 0 ? '  ·  Following' : '')));
-        head.style.transform = 'translate3d(0,' + y + 'px,0)';
+        head.style.top = y + 'px';
         listTrack.appendChild(head);
         y += GROUP;
         groups[k].forEach(function (g) {
           var node = rowFor(g);
-          node.style.transform = 'translate3d(0,' + y + 'px,0)';
+          node.style.top = y + 'px';
           listTrack.appendChild(node);
           entries.push({ game: g, el: node, top: y, head: g === groups[k][0] ? y - GROUP : -1 });
           y += ROW;
