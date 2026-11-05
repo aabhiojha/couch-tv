@@ -147,7 +147,8 @@
           results.setEmpty('No results for “' + requestedQuery + '”. Check the spelling, or try fewer words.');
         }
         if (!items.length) total = loaded;
-        count.textContent = total + (total === 1 ? ' result' : ' results');
+        // TMDB stops counting at 10,000.
+        count.textContent = Live.format('number', total) + (total >= 10000 ? '+' : '') + (total === 1 ? ' result' : ' results');
         updateFocus();
       }, function () {
         if (request !== revision) return;
