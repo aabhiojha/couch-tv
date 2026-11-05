@@ -1,0 +1,116 @@
+/* A match's page: the scoreboard centred over a faint glow in both teams' colours, Watch buttons under it, then
+   sections that light their heading when focused. Chromium 76: no gap on flex, no aspect-ratio. */
+.match-hero { position:relative; height:720px; padding:84px 90px 0; overflow:hidden; text-align:center; }
+.match-glow { position:absolute; top:-120px; left:-200px; width:2320px; height:840px; opacity:.32; }
+.match-hero::after { content:''; position:absolute; right:0; bottom:0; left:0; height:220px; background:linear-gradient(0deg,#000,rgba(0,0,0,0)); }
+.match-eyebrow,.match-board,.match-summary,.match-facts,.match-actions,.match-load { position:relative; z-index:1; }
+.match-eyebrow { color:var(--muted); font-size:24px; font-weight:600; letter-spacing:2px; }
+.match-board { display:flex; align-items:flex-start; justify-content:center; margin-top:44px; }
+.match-side { width:560px; }
+.match-crest { display:flex; align-items:center; justify-content:center; width:190px; height:190px; margin:0 auto 22px; border-radius:50%;
+  background:rgba(255,255,255,.08); color:var(--muted); font-size:64px; font-weight:700; }
+.match-crest-img { max-width:170px; max-height:170px; }
+.match-team { font-size:40px; font-weight:700; line-height:1.15; letter-spacing:-.4px; }
+.match-runs { min-height:36px; margin-top:12px; color:var(--muted); font-size:30px; font-weight:600; }
+.match-side.winner .match-runs { color:#fff; }
+.match-middle { width:440px; padding-top:44px; }
+.match-score { font-size:112px; font-weight:700; line-height:1; letter-spacing:-2px; font-variant-numeric:tabular-nums; }
+.match-score-time { font-size:64px; letter-spacing:-1px; color:rgba(255,255,255,.9); }
+.match-status { display:inline-block; margin-top:22px; padding:8px 20px; border-radius:22px; background:var(--fill); font-size:26px; font-weight:600; }
+.match-status:empty { display:none; }
+.match-status.live { background:#e5352b; color:#fff; letter-spacing:1px; }
+.match-hero.is-live .match-status.live { animation:match-pulse 2s ease-in-out infinite; }
+@keyframes match-pulse { 50% { opacity:.72; } }
+.no-motion .match-hero.is-live .match-status.live { animation:none; }
+.match-summary { min-height:36px; margin-top:26px; font-size:30px; font-weight:600; }
+.match-facts { margin-top:8px; color:var(--muted); font-size:25px; }
+.match-actions { justify-content:center; margin-top:34px; }
+.match-actions .details-button { margin:0 10px; }
+.match-load { margin-top:18px; }
+
+/* Sections: full-width blocks; the focused one gets the marker bar (only buttons and clips take OK). */
+.match-section { padding:28px 90px 34px; }
+/* The focused section's bar is one composited element outside the page that slides to its heading: changing
+   anything inside the page on a move repainted the whole ~11 MP page layer (tools/trace.js, match page). */
+.match-marker { position:absolute; z-index:5; top:0; left:64px; width:6px; height:36px; border-radius:3px; background:#fff; opacity:0;
+  will-change:transform,opacity; transition:transform 340ms var(--slide-ease),opacity 160ms; }
+.match-marker.on { opacity:1; }
+.no-motion .match-marker { transition:none; }
+.match-sec-clips { padding-left:72px; }
+.match-sec-clips .details-section-title { margin-left:18px; }
+.match-sec-clips .kit-row { min-height:0; margin-bottom:0; }
+.match-sec-clips .row-heading { display:none; }
+
+/* Timeline: home events right-aligned against the centre minute column, away events after it. */
+.match-timeline { width:1300px; margin:0 auto; }
+.match-tl-row { display:flex; align-items:center; min-height:76px; border-bottom:1px solid rgba(255,255,255,.07); }
+.match-tl-minute { flex:none; width:120px; color:var(--muted); font-size:26px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
+.match-tl-text { width:590px; }
+.match-tl-home .match-tl-text { text-align:right; }
+.match-tl-away { flex-direction:row-reverse; justify-content:flex-end; }
+.match-tl-away .match-tl-text { order:2; }
+.match-tl-away .match-tl-minute { order:1; margin-left:590px; }
+.match-tl-player { font-size:28px; font-weight:600; }
+.match-tl-detail { color:var(--muted); font-size:22px; }
+.match-tl-icon { display:inline-block; width:22px; height:22px; margin:0 12px; vertical-align:-2px; border-radius:50%; background:#fff; }
+.match-icon-yellow { width:16px; height:22px; border-radius:3px; background:#f5c518; }
+.match-icon-red { width:16px; height:22px; border-radius:3px; background:#e5352b; }
+.match-icon-sub { background:transparent; border:3px solid #34c759; width:16px; height:16px; }
+.match-icon-own-goal { background:#ff9f0a; }
+.match-icon-miss { background:transparent; border:3px solid var(--muted); width:16px; height:16px; }
+
+/* Stats: value · label · value, with a split bar; the leading side's half is bright. */
+.match-stats { width:1100px; margin:0 auto; }
+.match-stat { margin-bottom:26px; }
+.match-stat-line { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+.match-stat-value { width:180px; font-size:30px; font-weight:700; font-variant-numeric:tabular-nums; }
+.match-stat-value:last-child { text-align:right; }
+.match-stat-label { color:var(--muted); font-size:24px; font-weight:600; }
+.match-stat-bar { display:flex; height:10px; }
+.match-stat-home,.match-stat-away { height:10px; border-radius:5px; background:rgba(255,255,255,.22); }
+.match-stat-home { margin-right:6px; }
+.match-stat-home.lead,.match-stat-away.lead { background:#fff; }
+
+/* Two columns: lineups, form, scorecards. */
+.match-columns { display:flex; justify-content:space-between; width:1500px; margin:0 auto; }
+.match-column { width:720px; }
+.match-column-head { margin-bottom:16px; font-size:30px; font-weight:700; }
+.match-player { display:flex; align-items:center; height:52px; border-bottom:1px solid rgba(255,255,255,.07); font-size:26px; }
+.match-player.off { color:var(--muted); }
+.match-player-number { width:60px; color:var(--muted); font-weight:700; font-variant-numeric:tabular-nums; }
+.match-player-name { flex:1; }
+.match-player-pos { width:70px; color:var(--muted); text-align:right; font-size:22px; font-weight:600; }
+.match-player-bench { margin-top:16px; color:var(--muted); font-size:23px; line-height:1.45; }
+.match-form-pills { display:flex; margin-bottom:18px; }
+.match-form-pill { width:54px; height:54px; margin-right:12px; border-radius:12px; font-size:26px; font-weight:700; line-height:54px; text-align:center; }
+.result-w { background:#34c759; color:#000; }
+.result-d { background:rgba(255,255,255,.3); }
+.result-l { background:#e5352b; }
+.match-form-game { display:flex; align-items:center; height:56px; border-bottom:1px solid rgba(255,255,255,.07); font-size:26px; }
+.match-form-result { width:36px; height:36px; margin-right:18px; border-radius:8px; font-size:20px; font-weight:700; line-height:36px; text-align:center; }
+.match-form-opponent { flex:1; }
+.match-form-score { color:var(--muted); font-weight:700; font-variant-numeric:tabular-nums; }
+
+/* Table: the two teams' rows highlighted; a gap row where ranks are skipped. */
+.match-table { width:1300px; margin:0 auto; }
+.match-table-row { display:flex; align-items:center; height:56px; padding:0 20px; border-radius:10px; font-size:26px; font-variant-numeric:tabular-nums; }
+.match-table-row > div { width:90px; text-align:center; }
+.match-table-row > div:first-child { width:70px; color:var(--muted); text-align:left; }
+.match-table-row > div:nth-child(2) { flex:1; text-align:left; }
+.match-table-row > div:last-child { font-weight:700; }
+.match-table-head { color:var(--muted); font-size:22px; font-weight:700; }
+.match-table-row.mine { background:var(--fill-strong); font-weight:700; }
+.match-table-gap { color:var(--muted); text-align:center; font-size:22px; }
+
+/* Cricket scorecards. */
+.match-card-row { display:flex; align-items:center; min-height:54px; border-bottom:1px solid rgba(255,255,255,.07); font-size:25px; font-variant-numeric:tabular-nums; }
+.match-card-row > div { width:72px; text-align:right; }
+.match-card-row > div:first-child { flex:1; text-align:left; }
+.match-card-head { color:var(--muted); font-size:22px; font-weight:700; }
+.match-card-name span { display:block; }
+.match-card-out { color:var(--muted); font-size:20px; }
+.match-notes { width:1300px; margin:0 auto; }
+.match-note { padding:14px 0; border-bottom:1px solid rgba(255,255,255,.07); font-size:26px; line-height:1.4; }
+/* Own layers for the two parts that change on focus (buttons, clip cards): a focus change then re-records only them,
+   not the whole page layer (main-thread paint 665 ms → 30 ms over the tools/trace.js match-page run). */
+.match-hero,.match-sec-clips { will-change:transform; }

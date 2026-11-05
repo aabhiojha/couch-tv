@@ -9,10 +9,10 @@ using Tizen.Applications;
 
 namespace CouchTor
 {
-    /// <summary>Tizen service entry point: starts the HTTP API on :11470 (torrents and the stream server) and the torrent engine.</summary>
+    /// <summary>Tizen service entry point: starts the HTTP API on :11471 (torrents and the stream server) and the torrent engine.</summary>
     class App : ServiceApplication
     {
-        public const int Port = 11470;
+        public const int Port = 11471;
         static readonly LogRing Log = new LogRing(300);
         static TorrentEngine engine;
         static HttpService http;
@@ -48,9 +48,9 @@ namespace CouchTor
                 var handler = BrowserTls.Handler();
                 var upstream = new Upstream(handler);
                 var streams = new StreamServer(new SourceFinder(new IStreamProvider[] { new VixSrc(upstream), new VidApi(upstream) }, Log), upstream, Log);
-                // Sports: Streamed's schedule, resolved on this TV (its stream URLs only play from the IP that resolved them).
+                // Sports: PPV's schedule, resolved on this TV (its stream URLs only play from the IP that resolved them).
                 var catalog = new Sports.SportsCatalog(upstream, Log, scores: new Sports.SportsScores(upstream, Log));
-                var sports = new Sports.SportsRoutes(catalog, new Sports.StreamedResolver(Log, handler), streams, Log);
+                var sports = new Sports.SportsRoutes(catalog, new Sports.PpvResolver(Log, handler), streams, Log);
                 _ = catalog.WarmAsync();
                 http = new HttpService(engine, Log, new Sports.Routes(streams, sports));
                 http.Start(IPAddress.Any, Port);

@@ -11,31 +11,28 @@ using CouchTor.Streams;
 
 namespace CouchTor.Sports
 {
-    /// <summary>One way to watch an item: a Streamed source of a match or channel.</summary>
+    /// <summary>One way to watch an item: a PPV stream (its embed page) of a match or channel.</summary>
     public sealed class Feed
     {
-        public string Id, Source, Match, Label;
+        public string Id, Embed, Label, Language;
     }
 
     public sealed class SportsItem
     {
         public string Id, Title, Kind, Sport, Thumb;
-        public double StartsAt;
+        public double StartsAt, EndsAt;
         public List<Feed> Feeds = new List<Feed>();
     }
 
     /// <summary>
-    /// Streamed's schedule (/api/matches/all), as the app's /sports.json catalog: cricket and
+    /// PPV's schedule (api.ppv.st/api/streams), as the app's /sports.json catalog: cricket and
     /// football only, events and always-on channels, each with its sources as feeds. Refreshed at most once a
     /// minute; the last good schedule is served, marked stale, for six hours.
     /// </summary>
     public sealed class SportsCatalog
     {
-        /// <summary>
-        /// Streamed's mirrors, tried in order. The home router's DNS blocks streamed.pk (it answers 127.0.0.1) and
-        /// streamed.su; streamed.st serves the same API.
-        /// </summary>
-        public static readonly string[] Hosts = { "https://streamed.st", "https://streamed.pk" };
+        /// <summary>PPV's API hosts, tried in order. (Streamed, the source before PPV, closed on 2026-11-04.)</summary>
+        public static readonly string[] Hosts = { "https://api.ppv.st" };
         string host = Hosts[0];
         /// <summary>Association football; the household watches only these.</summary>
         public static readonly string[] Sports = { "Cricket", "Football" };
@@ -64,7 +61,7 @@ namespace CouchTor.Sports
             this.scores = scores;
         }
 
-        static Dictionary<string, string> Headers() => new Dictionary<string, string> { ["User-Agent"] = StreamedResolver.UserAgent, ["Accept"] = "application/json" };
+        static Dictionary<string, string> Headers() => new Dictionary<string, string> { ["User-Agent"] = PpvResolver.UserAgent, ["Accept"] = "application/json" };
 
         public static string SportName(string category)
         {
@@ -78,37 +75,49 @@ namespace CouchTor.Sports
                 return "s-" + string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(source + ":" + match)).Take(10).Select(b => b.ToString("x2")));
         }
 
-        /// <summary>Streamed's match list as catalog items (no positive date = an always-on channel).</summary>
-        public static List<SportsItem> Normalize(object json, string streamed)
+        /// <summary>
+        /// PPV's schedule as catalog items: {streams: [{category, streams: [{id, name, poster, starts_at, ends_at (s),
+        /// always_live, locale, source_tag, iframe, substreams: [...]}]}]}. Each stream and substream (another
+        /// quality or broadcaster) with an embed page is a feed.
+        /// </summary>
+        public static List<SportsItem> Normalize(object json)
         {
-            if (!(json is List<object> list))
-                throw new InvalidDataException("invalid Streamed schedule");
+            if (!(JsonReader.Get(json, "streams") is List<object> categories))
+                throw new InvalidDataException("invalid PPV schedule");
             var result = new List<SportsItem>();
-            foreach (var entry in list.OfType<Dictionary<string, object>>())
+            foreach (var category in categories.OfType<Dictionary<string, object>>())
             {
-                var id = JsonReader.Get(entry, "id") as string;
-                var title = JsonReader.Get(entry, "title") as string;
-                var sport = SportName(JsonReader.Get(entry, "category") as string);
-                if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(title) || !Sports.Contains(sport))
+                var sport = SportName(JsonReader.Get(category, "category") as string);
+                if (!Sports.Contains(sport))
                     continue;
-                // Channels carry no start: Streamed has used 0 and, since October 2026, -3600000.
-                double start = JsonReader.Get(entry, "date") is double d && d > 0 ? d : 0;
-                if (start >= 1e14)
-                    continue;
-                var item = new SportsItem { Id = "streamed:" + id, Title = title, Kind = start > 0 ? "event" : "channel", Sport = sport, StartsAt = start };
-                var poster = JsonReader.Get(entry, "poster") as string ?? "";
-                item.Thumb = poster.StartsWith("/") ? streamed + poster : poster.StartsWith("https://") ? poster : "";
-                foreach (var s in (JsonReader.Get(entry, "sources") as List<object> ?? new List<object>()).OfType<Dictionary<string, object>>())
+                foreach (var entry in (JsonReader.Get(category, "streams") as List<object> ?? new List<object>()).OfType<Dictionary<string, object>>())
                 {
-                    var source = JsonReader.Get(s, "source") as string;
-                    var match = JsonReader.Get(s, "id") as string;
-                    if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(match))
+                    var title = JsonReader.Get(entry, "name") as string;
+                    if (!(JsonReader.Get(entry, "id") is double id) || string.IsNullOrEmpty(title))
                         continue;
-                    item.Feeds.Add(new Feed { Id = FeedId(source, match), Source = source, Match = match,
-                        Label = "Streamed · " + CultureInfo.InvariantCulture.TextInfo.ToTitleCase(source) });
+                    bool channel = JsonReader.Get(entry, "always_live") is double live && live == 1 || JsonReader.Get(entry, "always_live") is bool on && on;
+                    double start = JsonReader.Get(entry, "starts_at") is double s0 ? s0 : 0, end = JsonReader.Get(entry, "ends_at") is double e0 ? e0 : 0;
+                    if (!channel && !(0 < start && start < end && end < 1e11))
+                        continue;
+                    var poster = JsonReader.Get(entry, "poster") as string ?? "";
+                    var item = new SportsItem
+                    {
+                        Id = "ppv:" + id.ToString(CultureInfo.InvariantCulture), Title = title, Kind = channel ? "channel" : "event", Sport = sport,
+                        StartsAt = channel ? 0 : start * 1000, EndsAt = channel ? 0 : end * 1000, Thumb = poster.StartsWith("https://") ? poster : "",
+                    };
+                    var subs = (JsonReader.Get(entry, "substreams") as List<object> ?? new List<object>()).OfType<Dictionary<string, object>>();
+                    foreach (var s in new[] { entry }.Concat(subs))
+                    {
+                        var embed = JsonReader.Get(s, "iframe") as string ?? "";
+                        if (!(JsonReader.Get(s, "id") is double feedId) || !embed.StartsWith("https://") || !embed.Contains("/embed/"))
+                            continue;
+                        var tag = JsonReader.Get(s, "source_tag") as string;
+                        item.Feeds.Add(new Feed { Id = FeedId("ppv", feedId.ToString(CultureInfo.InvariantCulture)), Embed = embed,
+                            Label = "PPV · " + (string.IsNullOrEmpty(tag) ? "Main" : tag), Language = Language(JsonReader.Get(s, "locale") as string) });
+                    }
+                    if (item.Feeds.Count > 0)
+                        result.Add(item);
                 }
-                if (item.Feeds.Count > 0)
-                    result.Add(item);
             }
             return result;
         }
@@ -123,8 +132,8 @@ namespace CouchTor.Sports
                 attemptedAt = clock();
                 try
                 {
-                    var (answer, working) = await FromAnyHostAsync("/api/matches/all", token).ConfigureAwait(false);
-                    var fresh = Normalize(JsonReader.Parse(answer.Text()), working);
+                    var (answer, working) = await FromAnyHostAsync("/api/streams", token).ConfigureAwait(false);
+                    var fresh = Normalize(JsonReader.Parse(answer.Text()));
                     host = working;
                     var map = new Dictionary<string, Feed>(feeds);
                     foreach (var feed in fresh.SelectMany(i => i.Feeds))
@@ -137,7 +146,7 @@ namespace CouchTor.Sports
                 catch (Exception e) when (!token.IsCancellationRequested)
                 {
                     failed = true;
-                    log.Add("streamed schedule failed: " + e.GetBaseException().Message);
+                    log.Add("ppv schedule failed: " + e.GetBaseException().Message);
                 }
             }
             finally { gate.Release(); }
@@ -198,42 +207,20 @@ namespace CouchTor.Sports
             var games = scores?.Games();
             foreach (var item in items)
             {
-                var score = games != null && item.Kind == "event" ? SportsScores.Match(item.Title, item.StartsAt, games) : null;
+                var game = games != null && item.Kind == "event" ? SportsScores.Match(item.Title, item.StartsAt, games) : null;
+                var score = game?.Score;
                 if (!first) sb.Append(',');
                 first = false;
                 var streams = string.Join(",", item.Feeds.Select(f => Json.Object().Add("id", f.Id).Add("url", origin + "/sports/play/" + f.Id + ".m3u8")
-                    .Add("label", f.Label).Add("language", "").ToString()));
+                    .Add("label", f.Label).Add("language", f.Language).ToString()));
                 sb.Append(Json.Object().Add("id", item.Id).Add("title", item.Title).Add("kind", item.Kind).Add("sport", item.Sport)
-                    .Add("thumb", item.Thumb).Add("startsAt", item.StartsAt).Add("endsAt", 0L).Raw("streams", "[" + streams + "]")
-                    .Raw("score", score != null ? SportsScores.ToJson(score) : "null").ToString());
+                    .Add("thumb", item.Thumb).Add("startsAt", item.StartsAt).Add("endsAt", item.EndsAt).Raw("streams", "[" + streams + "]")
+                    .Raw("score", score != null ? SportsScores.ToJson(score) : "null")
+                    .Raw("espn", game != null && game.Event.Length > 0 && game.League.Length > 0 ? SportsScores.RefJson(game) : "null").ToString());
             }
-            var provider = Json.Object().Add("name", "Streamed").Add("status", failed ? "stale" : "ok")
+            var provider = Json.Object().Add("name", "PPV").Add("status", failed ? "stale" : "ok")
                 .Add("updatedAt", (double)new DateTimeOffset(updatedAt).ToUnixTimeMilliseconds()).ToString();
             return sb.Append("],\"providers\":[").Append(provider).Append("]}").ToString();
-        }
-
-        /// <summary>
-        /// The stream to resolve for a feed: Streamed lists one or more streams per source, each with an embed URL
-        /// (…/embed/{source}/{id}/{streamNo}) and a language. English, Hindi or Nepali commentary is preferred,
-        /// then unlabelled, then anything.
-        /// </summary>
-        public async Task<(string source, string id, string streamNo)> StreamAsync(Feed feed, CancellationToken token)
-        {
-            Fetched answer;
-            try { answer = (await FromAnyHostAsync("/api/stream/" + Uri.EscapeDataString(feed.Source) + "/" + Uri.EscapeDataString(feed.Match), token).ConfigureAwait(false)).answer; }
-            catch (Exception e) when (!(e is OperationCanceledException)) { throw new ServiceException(502, "Streamed stream list: " + e.GetBaseException().Message); }
-            var choices = (JsonReader.Parse(answer.Text()) as List<object> ?? new List<object>()).OfType<Dictionary<string, object>>()
-                .Select(c => (embed: JsonReader.Get(c, "embedUrl") as string ?? "", language: Language(JsonReader.Get(c, "language") as string)))
-                .Where(c => c.embed.Contains("/embed/")).ToList();
-            if (choices.Count == 0)
-                throw new ServiceException(404, "no stream listed for this source");
-            var order = new[] { "en", "hi", "ne", "" };
-            var best = choices.OrderBy(c => Array.IndexOf(order, c.language) is int i && i >= 0 ? i : order.Length).First();
-            var parts = new Uri(best.embed).AbsolutePath.Split('/');
-            int at = Array.IndexOf(parts, "embed");
-            if (at < 0 || parts.Length < at + 4)
-                throw new ServiceException(502, "unexpected embed URL");
-            return (Uri.UnescapeDataString(parts[at + 1]), Uri.UnescapeDataString(parts[at + 2]), Uri.UnescapeDataString(parts[at + 3]));
         }
 
         public static string Language(string value)

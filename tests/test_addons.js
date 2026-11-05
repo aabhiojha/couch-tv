@@ -83,6 +83,13 @@ function sample(release, extra) {
   assert.deepEqual(Addons.rank(choices, 720).map(s => s.quality), [720, 480, 1080]);
   assert.equal(Addons.rank(choices, 480)[0].quality, 480);
   assert.deepEqual(Addons.rank(choices.concat(sample('Film.2160p\n👤 1')), 2160).map(s => s.quality), [2160, 1080, 720, 480]);
+  // Foreign dubs sink below every quality; English, the original language or no language marks stay.
+  const dubs = Addons.rank([sample('Anime.1080p.WEB-DL.Dual YG\n👤 900'), sample('Anime.1080p.LATINO\n👤 900'),
+    sample('Anime.1080p\n👤 50 / 🇪🇸 / 🇲🇽'), sample('Anime.1080p.ENG.ITA\n👤 40 / 🇬🇧 / 🇮🇹'),
+    sample('Anime.1080p\n👤 30 / 🇯🇵'), sample('Anime.720p\n👤 5')], 'best', 'ja');
+  assert.deepEqual(dubs.map(s => s.title), ['Anime.1080p.ENG.ITA', 'Anime.1080p', 'Anime.720p',
+    'Anime.1080p.WEB-DL.Dual YG', 'Anime.1080p.LATINO', 'Anime.1080p']);
+  assert.equal(Addons.parse({ infoHash: 'a'.repeat(40), name: 'Torrentio\nTeleSync', title: 'Film.2025.V2.1080p.TELES\n👤 400' }).playable, false);
   // Dotted codec names: H.265 10-bit is HEVC (playable), H.264 10-bit is Hi10P (not).
   assert.equal(sample('Film.1080p.H.265.10bit').playable, true);
   assert.equal(sample('Film.1080p.H.264.10bit').playable, false);

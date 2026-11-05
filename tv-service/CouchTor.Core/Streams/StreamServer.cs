@@ -91,7 +91,9 @@ namespace CouchTor.Streams
                 var s = sources[i];
                 if (i > 0) sb.Append(',');
                 sb.Append(Json.Object().Add("url", Relayed(origin, links.Add(s.Url, s.Headers))).Add("type", s.Type).Add("quality", s.Quality)
-                    .Raw("provider", Json.Object().Add("id", s.ProviderId).Add("name", s.ProviderName).ToString()).ToString());
+                    .Raw("provider", Json.Object().Add("id", s.ProviderId).Add("name", s.ProviderName).ToString())
+                    .Raw("subtitles", "[" + string.Join(",", s.Subtitles.Select(t => Json.Object().Add("url", Relayed(origin, links.Add(t.Url, s.Headers)))
+                        .Add("label", t.Label).Add("language", t.Language).ToString())) + "]").ToString());
             }
             sb.Append("],\"subtitles\":[]}");
             await HttpService.SendAsync(net, 200, "application/json", sb.ToString()).ConfigureAwait(false);

@@ -117,6 +117,7 @@ namespace CouchTor.Streams
         /// <summary>
         /// Points every URI in <paramref name="text"/> at the relay (<paramref name="relay"/> gets the absolute
         /// upstream URL and returns the replacement), then:
+        /// drops subtitle renditions (the app lists them from the sources answer and draws them itself);
         /// keeps only the original-language audio, since VixSrc adds an Italian dub as the default next to it and
         /// switching tracks in AVPlay breaks seeking; and keeps one rendition, the best at or below
         /// <paramref name="quality"/> (a height class, or empty for the best), because AVPlay starts on the lowest and
@@ -132,6 +133,10 @@ namespace CouchTor.Streams
                 var trimmed = line.Trim();
                 if (trimmed.StartsWith("#", StringComparison.Ordinal))
                 {
+                    if (SubtitleMedia.IsMatch(trimmed))
+                        continue;
+                    if (trimmed.StartsWith("#EXT-X-STREAM-INF", StringComparison.Ordinal))
+                        line = SubtitleGroup.Replace(line, "");
                     lines.Add(UriAttribute.Replace(line, m => "URI=\"" + relay(Resolve(baseUrl, m.Groups[1].Value)) + "\""));
                     continue;
                 }
@@ -173,6 +178,18 @@ namespace CouchTor.Streams
             }
             return string.Join("\n", lines);
         }
+
+        static readonly Regex SubtitleMedia = new Regex(@"^#EXT-X-MEDIA:.*TYPE=SUBTITLES", RegexOptions.Compiled);
+        static readonly Regex SubtitleGroup = new Regex(@",SUBTITLES=""[^""]*""", RegexOptions.Compiled);
+
+        static string Attribute(string line, string name)
+            => Regex.Match(line, "[:,]" + name + "=\"([^\"]*)\"").Groups[1].Value;
+
+        /// <summary>A master playlist's subtitle renditions, with absolute URLs.</summary>
+        public static List<Subtitle> Subtitles(string master, string baseUrl)
+            => master.Replace("\r\n", "\n").Split('\n').Where(l => SubtitleMedia.IsMatch(l) && Attribute(l, "URI").Length > 0)
+                .Select(l => new Subtitle { Label = Attribute(l, "NAME"), Language = Attribute(l, "LANGUAGE"), Url = Resolve(baseUrl, Attribute(l, "URI")) })
+                .ToList();
 
         /// <summary>Absolute URLs are kept exactly as written (tokens must not be re-encoded).</summary>
         public static string Resolve(string baseUrl, string url)

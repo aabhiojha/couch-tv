@@ -47,6 +47,6 @@ cd web && python3 -m http.server 8000     # open http://localhost:8000/dev.html 
 | Catalog | TMDB API v3 (titles, artwork, seasons, recommendations) |
 | Streams | Your stream server, `COUCH_SECRETS.provider` (`web/js/pstream.js`, [sources](streaming-provider.md)) |
 | Torrents | Your Stremio add-ons, `COUCH_SECRETS.addons` (`web/js/addons.js`), played through the torrent engine on the TV ([details](torrent-server.md)) |
-| Sports | A schedule catalog (`sports.json`) from your sports relay, plus configured M3U channels; English/Hindi/Nepali preferred |
+| Sports | PPV's schedule and streams, found by the TV's own service, plus configured M3U channels; English/Hindi/Nepali preferred |
 | Storage | `localStorage` on the TV: watch progress, My List, settings, caches |
 | Tests | `node tests/test_data.js`, `node tests/test_pstream.js`, `node tests/test_addons.js`, `node tests/test_live.js`, `node tools/check-js.js` |

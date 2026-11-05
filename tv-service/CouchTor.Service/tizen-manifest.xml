@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="CouchTor01" version="1.0.0" api-version="8" xmlns="http://tizen.org/ns/packages">
+<!-- Ships inside the web app's package (build.sh): same package id, so the app may launch it. With
+     api-version 8, on-boot and auto-restart the install failed ("Register application error"); the TV ignored on-boot anyway. -->
+<manifest package="CouchTV001" version="0.4.0" api-version="6.0" xmlns="http://tizen.org/ns/packages">
   <profile name="tv" />
-  <service-application appid="CouchTor01.Service" exec="CouchTor.Service.dll" type="dotnet" multiple="false" taskmanage="false" nodisplay="true" auto-restart="false" on-boot="false">
+  <service-application appid="CouchTV001.Service" exec="CouchTor.Service.dll" type="dotnet" multiple="false" taskmanage="false" nodisplay="true">
     <label>CouchTor</label>
   </service-application>
   <privileges>

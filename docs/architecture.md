@@ -136,7 +136,7 @@ Old keys from earlier versions are removed at start-up to free the roughly 5 MB 
 1. `PStream.scrape(item, video, quality, tried)` looks up add-on and stream server sources in parallel.
    IMDb IDs select movie or series/episode streams; without one, only the stream server is used. The top five
    playable ranked add-on streams and provider sources form one list, ordered by `sourceOrder`
-   (add-ons first by default). Tried URLs are excluded across both families. Add-on URLs come from
+   (stream server first by default). Tried URLs are excluded across both families. Add-on URLs come from
    `COUCH_SECRETS.addons` and the stream server from `COUCH_SECRETS.provider`; neither is set by default.
    Torrent URLs and provisional stats endpoints use the server base in `pstream.js`. Streams needing
    audio transcoding still use plain URLs until the server's HLS endpoint is verified.

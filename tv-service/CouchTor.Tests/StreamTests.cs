@@ -104,6 +104,22 @@ public class HlsTests
     }
 
     [Fact]
+    public void SubtitleRenditionsGoToTheAppNotAvPlay()
+    {
+        var master = Master.Replace("#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=854x480,AUDIO=\"a\"",
+            "#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"s\",NAME=\"English\",LANGUAGE=\"eng\",URI=\"subs/en.m3u8\"\n" +
+            "#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=854x480,AUDIO=\"a\",SUBTITLES=\"s\"");
+        var subs = Hls.Subtitles(master, "https://cdn.example/m/master.m3u8");
+        Assert.Single(subs);
+        Assert.Equal("English", subs[0].Label);
+        Assert.Equal("eng", subs[0].Language);
+        Assert.Equal("https://cdn.example/m/subs/en.m3u8", subs[0].Url);
+        var text = Hls.Rewrite(master, "https://cdn.example/m/master.m3u8", Relay, "all");
+        Assert.DoesNotContain("SUBTITLES", text);
+        Assert.Contains("AUDIO=\"a\"\nR(https://cdn.example/m/v480.m3u8)", text);
+    }
+
+    [Fact]
     public void ListsMediaSegmentsInOrder()
     {
         var segments = new List<string>();

@@ -24,7 +24,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const profile = attach ? null : fs.mkdtempSync(path.join(os.tmpdir(), 'shot-'));
   const chrome = attach ? null : spawn('google-chrome', ['--headless=new',
     '--remote-debugging-port=' + endpoint.split(':')[1], '--user-data-dir=' + profile, '--window-size=1920,1080',
-    '--autoplay-policy=no-user-gesture-required', 'about:blank'], { stdio: 'ignore' });
+    '--autoplay-policy=no-user-gesture-required',
+    // ESPN's API answers 403 to "HeadlessChrome" (the TV's own user agent gets 200).
+    '--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36', 'about:blank'], { stdio: 'ignore' });
 
   let ws;
   for (let i = 0; i < 50 && !ws; i++) {

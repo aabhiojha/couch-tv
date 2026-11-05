@@ -27,14 +27,14 @@
         }), help: 'Turns the TV off after the time you pick, even mid-film. The Home launcher keeps the timer, so it runs in any app. The first time, the TV may ask you to Allow “Home launcher”.' }
       ] },
       { title: 'Sources', items: [
-        { key: 'askSource', type: 'toggle', title: 'Ask how to stream',
-          help: 'Before a film or episode starts, choose Torrent (downloads on this TV) or Web stream (VixSrc and VidApi, found by this TV). The other way is still tried if the one you pick has nothing that plays.' },
+        { key: 'askSource', type: 'toggle', title: 'Ask before playing',
+          help: 'Before a film or episode starts, choose Best quality (can take a minute to start) or Quick start. If the one you pick has nothing that plays, the other is tried.' },
         { key: 'sourceOrder', type: 'choice', title: 'Source order', options: [
-          { value: 'addons-first', label: 'Add-ons first' },
-          { value: 'provider-first', label: 'Stream server first' }
-        ], help: 'Which sources to try first when Ask how to stream is off. If a stream fails, the next source is tried automatically.' },
-        { key: 'torrent', type: 'action', title: 'Torrent server',
-          help: 'Torrents play on this TV unless a server override is configured. Press OK to test its connection again.' }
+          { value: 'addons-first', label: 'Best quality' },
+          { value: 'provider-first', label: 'Quick start' }
+        ], help: 'What to try first when Ask before playing is off. If a stream fails, the next source is tried automatically.' },
+        { key: 'torrent', type: 'action', title: 'Download engine',
+          help: 'Best quality titles download on this TV as they play. Press OK to test it again.' }
       ] },
       { title: 'Subtitles', items: [
         { key: 'subtitles', type: 'toggle', title: 'Show subtitles',
@@ -60,9 +60,9 @@
       ] },
       { title: 'Connection', items: [
         { key: 'server', type: 'action', title: 'Stream server',
-          help: 'Web streams are found by the stream server on this TV (VixSrc and VidApi). If titles won’t play, press OK to test it again.' },
+          help: 'Quick start titles are found by this TV. If titles won’t play, press OK to test it again.' },
         { key: 'sports', type: 'action', title: 'Sports streams',
-          help: 'This TV finds sports streams by running the Streamed site’s own player code. When the site changes it, streams stop playing and this row says why. Press OK to test with a live channel now; it can take up to a minute.' },
+          help: 'This TV finds sports streams by running PPV’s own player code. When the site changes it, streams stop playing and this row says why. Press OK to test with a live channel now; it can take up to a minute.' },
         { key: 'health', type: 'action', title: 'App health',
           help: 'Unexpected errors are recorded here so problems can be traced. Press OK to clear the list.' }
       ] }

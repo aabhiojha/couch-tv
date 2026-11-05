@@ -161,7 +161,7 @@ const PStream = require('../web/js/pstream.js');
   const statuses = [];
   const onlyTorrents = await PStream.scrape(movie, movie.videos[0], 'best', [third.source, fourth.source], t => statuses.push(t), 'web');
   assert.equal(onlyTorrents.kind, 'torrent');
-  assert.equal(statuses[0], 'No web stream found. Trying torrents…');
+  assert.equal(statuses[0], 'Trying another source');
   order = 'provider-first';
   failAddon = true;
   assert.equal((await PStream.scrape(movie, movie.videos[0], 'best')).kind, 'provider');
@@ -261,23 +261,25 @@ async function checkPlayerStatus() {
   window.Player.open({ stream: Promise.resolve({ url: 'http://test/provider', kind: 'provider' }),
     onFailure: () => { failures++; return true; } });
   await flush();
-  await tick(60);
-  assert.equal(failures, 1); // the new deadline is torrent-only
-  window.Player.close();
+  await tick(24);
+  assert.equal(failures, 1);
+  await tick(1);
+  assert.equal(failures, 2); // a web stream that doesn't move fails over after 25 s
+  assert.equal(window.Player.isOpen(), false);
   let percent = 0;
   window.Player.open({ stream: Promise.resolve({ url: 'http://test/torrent', kind: 'torrent' }),
     status: () => 'Torrent · ' + (percent++) + ' %', onFailure: () => { failures++; return true; } });
   await flush();
   nodes.filter(n => n.tag === 'video').at(-1).events.waiting();
   await tick(90);
-  assert.equal(failures, 1); // a buffering torrent whose download moves is not stalled
+  assert.equal(failures, 2); // a buffering torrent whose download moves is not stalled
   window.Player.close();
   window.Player.open({ stream: Promise.resolve({ url: 'http://test/torrent', kind: 'torrent' }),
     next: { title: 'Show', subtitle: 'S1 · E2' }, autoplayNext: false, onFailure: () => { failures++; return true; } });
   await flush();
   nodes.filter(n => n.tag === 'video').at(-1).events.ended();
   await tick(60);
-  assert.equal(failures, 1); // an ended episode waiting on "Play next" is not stalled
+  assert.equal(failures, 2); // an ended episode waiting on "Play next" is not stalled
   window.Player.close();
 }
 checkPlayerStatus().catch(error => { console.error(error); process.exitCode = 1; });
@@ -364,7 +366,11 @@ async function checkPlaybackWiring() {
   assert.equal(opts.status(), 'Starting torrent engine…');
   finishStream();
   await opts.stream;
-  assert.equal(await opts.status(), 'Torrent · 23 peers · 1.2 MB/s · 41 %');
+  // The viewer sees only how far along it is; the peers and speed still tell the stall check it's moving.
+  const status = await opts.status();
+  assert.equal(status.text, '');
+  assert.equal(status.progress, 0.41);
+  assert.notEqual(status.tick, (await opts.status()).tick.replace(/^\d+/, '0'));
   assert.equal(statsUrl, 'http://test/stats');
   opts.onProgress(120, 500);
   assert.deepEqual(history, [item, video, 120, 500]);
@@ -387,7 +393,7 @@ async function checkTorrentService() {
     const window = { COUCH_SECRETS: { torrentServer: override },
       webapis: { network: { getIp() { if (ipError) throw Error('network unavailable'); return ip; } } },
       tizen: { application: { launch(id, success, error) {
-        assert.equal(id, 'CouchTor01.Service'); launches++;
+        assert.equal(id, 'CouchTV001.Service'); launches++;
         if (launchError) throw Error('launch failed');
         error();
       } } } };
@@ -409,10 +415,10 @@ async function checkTorrentService() {
   }
   for (const [options, base, host] of [
     [{ override: 'http://laptop:11470/', ip: '192.168.1.6' }, 'http://laptop:11470', 'laptop:11470'],
-    [{ ip: '192.168.1.6' }, 'http://192.168.1.6:11470', 'On this TV'],
-    [{}, 'http://127.0.0.1:11470', '127.0.0.1:11470'],
-    [{ ipError: true }, 'http://127.0.0.1:11470', '127.0.0.1:11470'],
-    [{ ip: '' }, 'http://127.0.0.1:11470', '127.0.0.1:11470']
+    [{ ip: '192.168.1.6' }, 'http://192.168.1.6:11471', 'On this TV'],
+    [{}, 'http://127.0.0.1:11471', '127.0.0.1:11471'],
+    [{ ipError: true }, 'http://127.0.0.1:11471', '127.0.0.1:11471'],
+    [{ ip: '' }, 'http://127.0.0.1:11471', '127.0.0.1:11471']
   ]) {
     const env = load(options);
     const status = await env.api.ping(true);
@@ -456,9 +462,9 @@ async function checkTorrentService() {
   ] });
   const messages = [];
   const chosen = await tv.api.scrape({ mediaType: 'movie', tmdbId: '1', imdbId: 'tt1' }, {}, 'best', [], text => messages.push(text));
-  assert.equal(chosen.url, 'http://192.168.1.6:11470/aac/-1?tr=udp%3A%2F%2Ftracker%3A80%2Fannounce');
-  assert.equal(chosen.stats, 'http://192.168.1.6:11470/aac/-1/stats.json?tr=udp%3A%2F%2Ftracker%3A80%2Fannounce');
-  assert.deepEqual(messages, ['Starting torrent engine…', '']);
+  assert.equal(chosen.url, 'http://192.168.1.6:11471/aac/-1?tr=udp%3A%2F%2Ftracker%3A80%2Fannounce');
+  assert.equal(chosen.stats, 'http://192.168.1.6:11471/aac/-1/stats.json?tr=udp%3A%2F%2Ftracker%3A80%2Fannounce');
+  assert.deepEqual(messages, ['', '']);
   assert.equal(tv.requests.filter(r => r.url.endsWith('/heartbeat')).length, 1);
   const laptop = load({ override: 'http://laptop:11470', ip: '192.168.1.6' });
   laptop.window.Addons = Object.assign({}, Addons, { streams: async () => [
@@ -481,7 +487,7 @@ async function checkTorrentService() {
     for (let i = 0; !result && !failure && i < 30; i++) await down.tick();
     assert.equal(down.now, 10000);
     if (hasHttp) assert.equal(result.kind, 'http');
-    else assert.match(failure.message, /Torrent engine is not reachable/);
+    else assert.match(failure.message, /Nothing could be started for this title/);
   }
 
 }

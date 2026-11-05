@@ -10,7 +10,7 @@
 # Env: TV_IP (192.168.1.6), REF (laptop server, http://192.168.1.34:11470), OUT (/tmp/couch-measure)
 set -uo pipefail
 TV_IP=${TV_IP:-192.168.1.6}
-S=http://$TV_IP:11470
+S=http://$TV_IP:11471
 REF=${REF:-http://192.168.1.34:11470}
 OUT=${OUT:-/tmp/couch-measure}
 SDB="$HOME/tizen-studio/tools/sdb -s $TV_IP:26101"
@@ -39,9 +39,9 @@ fetch() {
 }
 
 restart() {
-  $SDB shell 0 kill CouchTor01 >/dev/null 2>&1
+  $SDB shell 0 kill CouchTV001.Service >/dev/null 2>&1
   sleep 2
-  $SDB shell 0 execute CouchTor01.Service >/dev/null
+  $SDB shell 0 execute CouchTV001.Service >/dev/null
   local t0=$(date +%s.%N)
   until curl -s -m 1 "$S/heartbeat" >/dev/null; do sleep 0.2; done
   echo "heartbeat after $(echo "$(date +%s.%N) - $t0" | bc) s"

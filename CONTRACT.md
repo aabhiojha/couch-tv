@@ -495,7 +495,7 @@ branches off `v0.5-torrents`; **only edit the files you own**. All v2 rules stil
 
 ### Service HTTP API (both modules code against this)
 Same paths and fields as the Stremio server the app already uses (`docs/torrent-server.md`), so the
-app keeps one code path. Port **11470** on the TV's LAN IP. Every response sends
+app keeps one code path. Port **11471** on the TV's LAN IP. Every response sends
 `Access-Control-Allow-Origin: *`. Requests are accepted only from loopback and private LAN addresses
 (127.0.0.0/8, 10/8, 172.16/12, 192.168/16).
 
@@ -543,8 +543,8 @@ may be watching the TV: don't launch or kill the web app.
 `web/js/addons.js`, `web/js/screens/settings.js`, `web/config.xml`, `build.sh`, `tests/test_pstream.js`,
 `tests/test_data.js`, `tests/test_addons.js`, `docs/torrent-server.md`
 - **Server base.** `COUCH_SECRETS.torrentServer` (e.g. `'http://192.168.1.34:11470'`) if set, else the TV
-  service at `http://<TV IP>:11470`. Get the IP with `webapis.network.getIp()`, guarded (desktop has no
-  `webapis`: fall back to `http://127.0.0.1:11470`). Never `localhost` on the TV.
+  service at `http://<TV IP>:11471`. Get the IP with `webapis.network.getIp()`, guarded (desktop has no
+  `webapis`: fall back to `http://127.0.0.1:11471`). Never `localhost` on the TV.
 - **Start the service.** At app start, if the base is the TV service and `GET /heartbeat` fails within 1 s,
   call `tizen.application.launch('CouchTor01.Service')` (guarded, errors swallowed) and keep pinging. Add
   `<tizen:privilege name="http://tizen.org/privilege/application.launch"/>` to `web/config.xml`.

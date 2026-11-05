@@ -24,6 +24,13 @@ namespace CouchTor.Streams
         public string Quality = "unknown"; // "1080p", ...
         public IReadOnlyDictionary<string, string> Headers;
         public string ProviderId, ProviderName;
+        /// <summary>Subtitle files timed to this stream (VixSrc's HLS renditions), fetched with <see cref="Headers"/>.</summary>
+        public IReadOnlyList<Subtitle> Subtitles = new Subtitle[0];
+    }
+
+    public sealed class Subtitle
+    {
+        public string Label, Language, Url; // Url: a WebVTT file or a subtitle media playlist
     }
 
     public interface IStreamProvider

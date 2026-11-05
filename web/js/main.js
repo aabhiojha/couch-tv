@@ -18,7 +18,7 @@
   function askSource(item, video, options) {
     var settings = Data.settings();
     Shell.choose({ title: item.title, body: 'How do you want to watch?', index: settings.lastSource === 'web' ? 1 : 0,
-      choices: ['Torrent · downloads on this TV', 'Web stream · VixSrc or VidApi'] }).then(function (index) {
+      choices: ['Best quality · may take a minute to start', 'Quick start'] }).then(function (index) {
       if (index === false) return;
       var mode = index === 1 ? 'web' : 'torrent';
       if (settings.lastSource !== mode) Data.setSetting('lastSource', mode);
@@ -49,14 +49,13 @@
           if (!response.ok) throw new Error('Torrent stats unavailable');
           return response.json();
         }).then(function (stats) {
-          var text = 'Torrent';
-          if (typeof stats.peers === 'number') text += ' · ' + stats.peers + ' peers';
-          if (stats.downloadSpeed > 0) text += ' · ' + (stats.downloadSpeed / 1048576).toFixed(1) + ' MB/s';
-          if (typeof stats.streamProgress === 'number') text += ' · ' + Math.floor(stats.streamProgress * 100) + ' %';
-          return text;
-        }).catch(function () { return 'Torrent'; }).then(function (text) {
+          // Only how far along it is (the ring); peers and speeds are kept for stall detection.
+          var pct = typeof stats.streamProgress === 'number' ? Math.min(99, Math.floor(stats.streamProgress * 100)) : -1;
+          return { text: '', progress: pct > 0 ? pct / 100 : 0,
+            tick: [stats.peers, stats.downloadSpeed, stats.streamProgress].join() };
+        }).catch(function () { return ''; }).then(function (status) {
           clearTimeout(timer);
-          return text;
+          return status;
         });
       },
       quality: quality,
@@ -75,6 +74,9 @@
         Data.play(item, video, { startSec: atSec, mode: mode });
       },
       title: item.title,
+      backdrop: item.backdrop || '',
+      logo: item.logoLarge || item.logo || '',
+      certification: item.certification || '',
       subtitle: item.isSeries ? episodeLabel(video) : [item.year, item.runtime].filter(Boolean).join(' · '),
       startSec: options && options.startOver ? 0 : options && options.startSec >= 0 ? options.startSec : Data.resumeFrom(video.url),
       formatTime: Data.formatTime,
@@ -83,7 +85,7 @@
       subtitles: video.subtitles || [],
       subtitlesOn: settings.subtitles,
       subtitleSize: settings.subtitleSize,
-      audioLang: settings.audioLang,
+      audioLang: settings.audioLang || 'en', // first time: English when the file has it
       onAudio: function (lang) { if (lang) Data.setSetting('audioLang', lang); },
       loadSubtitles: Data.loadSubtitles,
       next: next ? { title: item.title, subtitle: episodeLabel(next) } : null,
@@ -139,6 +141,13 @@
     }
     // options.index: the watch option chosen on the Sports screen; otherwise the first, preferred one.
     open(options && options.index > 0 && options.index < streams.length ? options.index : 0);
+  };
+
+  // An ESPN clip from a match page (a plain MP4); a failure shows the player's error, there is no other source.
+  Data.playClip = function (video, matchTitle) {
+    liveAttempt++;
+    Player.open({ url: video.url, title: video.title || 'Clip', subtitle: matchTitle || 'ESPN', formatTime: Data.formatTime,
+      onClose: function () {} });
   };
 
   window.addEventListener('error', function (e) {

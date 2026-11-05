@@ -512,11 +512,50 @@
     // Glass over the focused button, placed from the fixed button pitch so render() never reads layout.
     state.buttonGlass = element('div', 'player-glass player-glass-btn', controls);
 
+    // Loading: the title's backdrop and logo, as the details screen shows them, with one plain status line.
+    var art = element('div', 'player-art', root);
+    if (opts.backdrop) {
+      var picture = new Image();
+      picture.onload = function () {
+        if (state.closed) return;
+        art.style.backgroundImage = 'url("' + encodeURI(opts.backdrop).replace(/"/g, '%22') + '")';
+        art.className = 'player-art player-art-on';
+      };
+      picture.src = opts.backdrop;
+    }
+    element('div', 'player-shade', root);
     state.center = element('div', 'player-center', root);
-    var loader = element('div', 'loader', state.center); // css/loader.css, same as between screens
-    element('div', 'loader-bar', element('div', 'loader-track', loader));
-    state.centerText = element('div', 'player-center-text', state.center);
-    element('div', 'player-center-title', state.center).textContent = opts.title || '';
+    var card = element('div', 'player-load', state.center);
+    var name = element('div', 'player-load-title', card);
+    name.textContent = opts.title || '';
+    if (opts.logo) {
+      var logo = element('img', 'player-load-logo', card);
+      logo.alt = '';
+      logo.onload = function () { card.className = 'player-load player-load-has-logo'; };
+      logo.src = opts.logo;
+    }
+    // One line of context, as Netflix and Apple TV give it: the episode or year, and where it resumes.
+    var resume = opts.startSec >= 30 ? 'Resuming at ' + displayTime(opts.startSec) : '';
+    element('div', 'player-load-meta', card).textContent = [opts.subtitle || '', resume].filter(Boolean).join('  ·  ');
+    // A ring: it spins until the download says how far along it is, then fills with the percentage.
+    state.ring = element('div', 'player-ring', card);
+    var ringSvg = document.createElementNS(SVG_NS, 'svg');
+    ringSvg.setAttribute('viewBox', '0 0 100 100');
+    state.ring.appendChild(ringSvg);
+    [['player-ring-track', 0], ['player-ring-arc', 1]].forEach(function (part) {
+      var circle = document.createElementNS(SVG_NS, 'circle');
+      circle.setAttribute('class', part[0]);
+      circle.setAttribute('cx', '50'); circle.setAttribute('cy', '50'); circle.setAttribute('r', '44');
+      ringSvg.appendChild(circle);
+      if (part[1]) state.ringArc = circle;
+    });
+    state.ringPct = element('div', 'player-ring-pct', state.ring);
+    state.centerText = element('div', 'player-center-text', card);
+    // The age rating, shown for a few seconds once the film starts (as streaming services do).
+    if (opts.certification) {
+      state.advisory = element('div', 'player-advisory', root);
+      element('span', 'player-advisory-rating', state.advisory).textContent = opts.certification;
+    }
     element('div', 'player-spinner player-buffer', root);
 
     state.stillLayer = element('div', 'player-still', root);
@@ -622,13 +661,22 @@
       setClass(root, 'player-root' + (opts.live ? ' player-live' : '') +
         (state.visible && !state.still ? ' player-shown' : '') +
         (loading ? ' player-loading' : '') +
+        (state.started ? '' : ' player-starting') +
         (state.failed ? ' player-failed' : '') +
         (state.still ? ' player-still-on' : '') +
         (state.panel ? ' player-panel-on' : '') +
         (state.focus === 'bar' ? ' player-focus-bar' : '') +
         (state.pending !== null ? ' player-scrubbing' : '') +
         (state.buffering && state.started && !state.pausedByUser && !state.failed ? ' player-buffering' : ''));
-      setText(state.centerText, state.statusText || (state.resolving ? 'Finding a stream' : 'Loading'));
+      setText(state.centerText, state.statusText || '');
+      var progress = state.statusProgress;
+      var known = typeof progress === 'number' && progress > 0;
+      setClass(state.ring, 'player-ring' + (known ? ' player-ring-known' : ''));
+      setText(state.ringPct, known ? Math.min(99, Math.floor(progress * 100)) + '%' : '');
+      if (known && state.ringArc._offset !== progress) {
+        state.ringArc._offset = progress;
+        state.ringArc.style.strokeDashoffset = (276.46 * (1 - Math.min(1, progress))).toFixed(1);
+      }
       setText(state.elapsed, displayTime(shown));
       setText(state.total, displayTime(state.length));
       var played = state.length ? Math.min(1, state.time / state.length) : 0;
@@ -1064,6 +1112,12 @@
       },
       playing: function () {
         if (!state.closed && !state.failed && !state.pausedByUser) {
+          if (!state.started && state.advisory) {
+            var advisory = state.advisory;
+            // Just after the controls hide, so it doesn't sit on the title.
+            setTimeout(function () { advisory.className = 'player-advisory player-advisory-on'; }, HIDE_MS + 600);
+            setTimeout(function () { advisory.className = 'player-advisory'; }, HIDE_MS + 7600);
+          }
           state.playing = true; state.started = true; state.buffering = false;
           updateQuality();
           show();
@@ -1115,18 +1169,23 @@
     state.statusTimer = setInterval(function () {
       if (state.closed || state.failed) return;
       var now = Date.now();
-      // A torrent fails over only when neither playback nor the download moves for 45 s; a finished
-      // episode waiting on "Play next" isn't stalled.
+      // A stream that doesn't move fails over to the next source: 25 s for web and live streams, 45 s for a
+      // torrent whose download isn't moving either. A finished episode waiting on "Play next" isn't stalled.
       var ended = state.length > 0 && state.time >= state.length;
-      if (!state.torrent || state.pausedByUser || ended || document.hidden || state.time !== lastPosition) lastProgress = now;
+      if (state.resolving || state.pausedByUser || ended || document.hidden || state.time !== lastPosition) lastProgress = now;
       lastPosition = state.time;
-      if (state.torrent && now - lastProgress >= 45000) { fail(); return; }
+      if (now - lastProgress >= (state.torrent ? 45000 : 25000)) { fail(); return; }
       if (!state.resolving && !state.buffering) { state.statusText = ''; return; }
       if (statusPending || typeof opts.status !== 'function') return;
       statusPending = true;
-      Promise.resolve().then(function () { return opts.status(); }).then(function (text) {
+      Promise.resolve().then(function () { return opts.status(); }).then(function (status) {
+        // A string, or { text, tick }: tick changes whenever the download moves, even when the text doesn't.
+        var text = status && typeof status === 'object' ? status.text : status;
+        var tick = status && typeof status === 'object' ? status.tick : text;
+        state.statusProgress = status && typeof status === 'object' ? status.progress : undefined;
         if (!state.closed && !state.failed && (state.resolving || state.buffering)) {
-          if (text !== state.statusText) lastProgress = Date.now(); // peers, speed or % moved
+          if (tick !== state.statusTick) lastProgress = Date.now();
+          state.statusTick = tick;
           state.statusText = typeof text === 'string' ? text : '';
           render();
         }
@@ -1144,6 +1203,15 @@
       if (state.closed) return;
       state.resolving = false;
       state.torrent = stream.kind === 'torrent';
+      // Web streams name their subtitle files only once resolved; English first when Settings has them on.
+      if (Array.isArray(stream.subtitles) && stream.subtitles.length && !state.tracks.length) {
+        state.tracks = stream.subtitles;
+        buildSubtitles(); renderPanel();
+        if (opts.subtitlesOn && state.subtitleIndex === -1) {
+          var english = state.tracks.findIndex(function (t) { return /^en/i.test(t.lang || '') || /^english/i.test(t.label || ''); });
+          selectSubtitle(english < 0 ? 0 : english);
+        }
+      }
       lastProgress = Date.now();
       state.backend.open(stream.url, finiteSeconds(opts.startSec), stream.headers);
       render();

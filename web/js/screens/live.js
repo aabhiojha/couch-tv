@@ -27,7 +27,27 @@
     // Every commentary is listed; English, Hindi and Nepali feeds come first, so the Play key starts one of those.
     var ANY = 'all';
     var viewItems = [{ key: 'now', title: 'On now' }, { key: 'today', title: 'Today' },
-      { key: 'upcoming', title: 'Upcoming' }, { key: 'channels', title: 'Channels' }];
+      { key: 'upcoming', title: 'Upcoming' }, { key: 'results', title: 'Results' }, { key: 'channels', title: 'Channels' }];
+    // Results: finished games of the last three days from ESPN, fetched when the tab is first opened.
+    var results = null, resultsAt = 0, resultsBusy = false;
+    function loadResults() {
+      if (resultsBusy || (results && Date.now() - resultsAt < 10 * 60000)) return;
+      resultsBusy = true;
+      if (!results) grid.setLoading(true);
+      Espn.results(Date.now(), 3).then(function (list) {
+        results = list.map(function (r) {
+          // Football: the score; cricket: who won ("India won by 5 wkts"), shorter than both innings.
+          var cricket = r.sport === 'Cricket' && r.score.summary;
+          return Object.assign({}, r, { meta: (cricket ? r.score.summary : r.score.line) + (r.competition ? ' · ' + r.competition : ''),
+            badge: r.sport === 'Cricket' ? 'Result' : 'FT', status: 'Ended' });
+        });
+        resultsAt = Date.now();
+      }, function () { if (!results) results = []; }).then(function () {
+        resultsBusy = false;
+        grid.setLoading(false);
+        if (views.value === 'results') { buildSports(); filter(false); }
+      });
+    }
 
     function makeTabs(wrap, label, items, index, onChange) {
       wrap.textContent = '';
@@ -36,12 +56,16 @@
       wrap.appendChild(tabs.el);
       return tabs;
     }
-    function changeView() { buildSports(); filter(false); }
+    function changeView() {
+      if (views.value === 'results') loadResults();
+      buildSports();
+      filter(false);
+    }
     views = makeTabs(viewWrap, '', viewItems, 0, changeView);
 
     function buildSports() {
       var selected = sports ? sports.value : 'all';
-      var names = snapshot ? Live.sportsIn(snapshot.items, views.value, ANY, Date.now()) : [];
+      var names = views.value === 'results' ? resultSports() : snapshot ? Live.sportsIn(snapshot.items, views.value, ANY, Date.now()) : [];
       var choices = [{ key: 'all', title: 'Cricket & football' }].concat(names.map(function (name) { return { key: name, title: name }; }));
       var index = Math.max(0, choices.map(function (choice) { return choice.key; }).indexOf(selected));
       sports = makeTabs(sportWrap, 'Sport', choices, index, function () { filter(false); });
@@ -51,8 +75,18 @@
     buildSports();
     function rows() { return sportWrap.hidden ? ['view', 'grid'] : ['view', 'sport', 'grid']; }
     function tabs(name) { return { view: views, sport: sports }[name]; }
+    function resultSports() {
+      var counts = {};
+      (results || []).forEach(function (r) { counts[r.sport] = (counts[r.sport] || 0) + 1; });
+      return Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+    }
     function describe(item) {
       if (!item) { hint.textContent = ''; return; }
+      if (item.kind === 'result') {
+        hint.textContent = [item.score.summary, item.competition, Live.startLabel(item, Date.now())].filter(Boolean).join(' · ') +
+          ' · OK for the match page';
+        return;
+      }
       var languages = [];
       item.streams.forEach(function (stream) {
         var name = Live.languageName(stream.language);
@@ -66,6 +100,8 @@
     // OK: the watch options plus saving to My Sports (the Home launcher's row); a match more than 15 minutes
     // away offers only the reminder. Play starts the first, preferred option.
     function play(item, direct) {
+      // A match (live, upcoming or finished) opens its page; Play still starts a live one straight away.
+      if (item.kind === 'result' || (item.kind === 'event' && !direct)) { shell.go('match', { item: item }); return; }
       var now = Date.now(), far = item.kind === 'event' && item.startsAt - now > 15 * 60000;
       if (Live.state(item, now) === 'Ended') { shell.toast('This event’s scheduled window has ended.'); return; }
       if (direct && far) {
@@ -97,6 +133,7 @@
     }
     function emptyText() {
       if (views.value === 'channels') return 'No channels for this sport.';
+      if (views.value === 'results') return results ? 'No results from the last three days. ESPN may be unreachable.' : 'Loading results…';
       var now = Date.now();
       var next = views.value === 'upcoming' ? null :
         Live.select(snapshot ? snapshot.items : [], 'upcoming', sports.value, ANY, now)[0];
@@ -107,10 +144,12 @@
     function filter(preserve) {
       var previous = preserve && shown[grid.index], position = grid.index;
       // Saved channels and matches carry a star; in Channels they come first.
-      shown = Live.select(snapshot ? snapshot.items : [], views.value, sports.value, ANY, Date.now()).map(function (item) {
+      shown = views.value === 'results' ? (results || []).filter(function (r) { return sports.value === 'all' || r.sport === sports.value; }) :
+        Live.select(snapshot ? snapshot.items : [], views.value, sports.value, ANY, Date.now()).map(function (item) {
         // ESPN's score (via the TV service) replaces the start time; "LIVE" only when ESPN says the game is on.
         if (item.score) item = Object.assign({}, item, { meta: item.score.line, live: item.score.state === 'in',
-          badge: item.score.state === 'in' ? 'LIVE' : item.badge, crests: item.thumb ? null : item.score.crests });
+          badge: item.score.state === 'in' ? 'LIVE' : item.badge,
+          crests: item.thumb ? null : item.score.crests.map(function (c) { return Espn.sized(c, 160, 160); }) });
         return data.isSportsBookmark(item.id) ? Object.assign({}, item, { saved: true, badge: '★' + (item.badge ? ' ' + item.badge : '') }) : item;
       });
       if (views.value === 'channels') shown = shown.filter(function (i) { return i.saved; }).concat(shown.filter(function (i) { return !i.saved; }));
@@ -130,9 +169,9 @@
       var names = result.providers.filter(function (provider) { return provider.status !== 'unavailable'; })
         .map(function (provider) { return provider.name; });
       var text = result.message || ('Match listings from ' + (names.join(' + ') || 'your sources') +
-        ' · ' + new Date().toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }));
+        ' · ' + Live.format('longDay', new Date()));
       if (result.stale && result.updatedAt > 0)
-        text += ' Updated ' + new Date(result.updatedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '.';
+        text += ' Updated ' + Live.format('time', result.updatedAt) + '.';
       return text;
     }
     function load() {
@@ -149,7 +188,7 @@
         // Open on the first view with something in it: On now, else Today, else Upcoming, else Channels.
         if (first && views.value === 'now' && !Live.select(result.items, 'now', 'all', ANY, now).length) {
           var start = Live.select(result.items, 'today', 'all', ANY, now).length ? 1 :
-            Live.select(result.items, 'upcoming', 'all', ANY, now).length ? 2 : 3;
+            Live.select(result.items, 'upcoming', 'all', ANY, now).length ? 2 : 4; // 3 is Results
           views = makeTabs(viewWrap, '', viewItems, start, changeView);
         }
         buildSports();
