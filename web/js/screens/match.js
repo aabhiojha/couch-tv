@@ -163,7 +163,8 @@
         if (item.streams.length > 1) buttons.push(button('list', 'Watch options', chooseFeed));
       }
       if (match && match.videos.length && !watchable()) buttons.push(button('film', 'Highlights', function () { playClip(match.videos[0]); }));
-      if (item.kind !== 'result' && item.streams && item.streams.length) {
+      // A game still to come can be saved without a stream (Home reminds before kick-off); one on now or over only with one.
+      if (item.kind !== 'result' && (item.streams && item.streams.length || (item.kind === 'event' && item.startsAt > Date.now()))) {
         buttons.push(button(saved ? 'check' : 'plus', saved ? (far ? 'Reminder set' : 'In My Sports') : (far ? 'Remind me' : 'My Sports'), function () {
           var on = data.toggleSportsBookmark(item);
           shell.toast(!on ? (far ? 'Reminder cancelled' : 'Removed from My Sports') :

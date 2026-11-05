@@ -29,10 +29,10 @@ Couch TV is a Tizen web app in `web/`. Each JavaScript file is a plain `<script>
 | `js/screens/search.js` | | On-screen keyboard, recent searches, popular titles, results grid |
 | `js/screens/details.js` | | Title page: actions, seasons, episodes, More Like This |
 | `js/screens/settings.js` | | Settings list with a help side panel |
-| `js/screens/live.js` | | Sports: event views, sport filter, channel grid and timed refresh |
+| `js/screens/live.js` | | Sports: date strip, competitions, grouped game list with the focused game's panel, tables, channels |
 | `js/player.js` | `Player` | Full-screen player: controls, seeking, subtitles, Up Next, quality, episodes |
 | `js/secrets.js` | `COUCH_SECRETS` | TMDB key. **Git-ignored**; never commit it |
-| `js/live.js` | `Live` | Relay sports catalog, local schedule status, commentary selection and M3U channels |
+| `js/live.js` | `Live` | Relay sports catalog, the guide (ESPN fixtures with catalog streams attached), commentary selection and M3U channels |
 | `js/pstream.js` | `PStream` | TMDB requests and the stream provider adapter |
 | `js/data.js` | `Data` | The DataSource: catalog rows, browse, search, details, library and settings |
 | `js/main.js` | | Integrator: `Data.play`, the single key listener, error logging, media keys, settings applied globally |

@@ -192,6 +192,40 @@ public class SportsScoresTests
     }
 }
 
+public class SportsBoardsTests
+{
+    [Fact]
+    public async Task ServesEspnBoardsTrimmedAndKeptForAMinute()
+    {
+        var stub = new StubUpstream();
+        stub.Respond = r => Task.FromResult(StubUpstream.Text("{\"sports\":[{\"leagues\":[{\"slug\":\"eng.1\",\"name\":\"English Premier League\",\"links\":[{\"href\":\"x\"}],\"events\":[" +
+            "{\"id\":\"9\",\"status\":\"pre\",\"date\":\"2026-11-08T14:00Z\",\"odds\":{\"spread\":1.5},\"fullStatus\":{\"displayClock\":\"0'\",\"type\":{\"completed\":false,\"shortDetail\":\"Sun 9:00 AM\"}}," +
+            "\"competitors\":[{\"homeAway\":\"home\",\"displayName\":\"Brighton\",\"order\":1,\"logo\":\"https://a/b.png\",\"form\":\"WWD\",\"links\":[]}]}]}]}]}", "application/json"));
+        var now = new DateTime(2026, 11, 8, 10, 0, 0, DateTimeKind.Utc);
+        var boards = new SportsBoards(new Upstream(stub) { Attempts = 1 }, new LogRing(), () => now);
+        var service = new HttpService(new FakeBackend(), new LogRing(), new Routes(boards));
+        service.Start(IPAddress.Loopback, 0);
+        try
+        {
+            var http = new HttpClient();
+            var url = "http://127.0.0.1:" + service.Port + "/sports/board?sport=soccer&date=20261108";
+            var body = await http.GetStringAsync(url);
+            Assert.Equal("{\"sports\":[{\"leagues\":[{\"slug\":\"eng.1\",\"name\":\"English Premier League\",\"events\":[" +
+                "{\"id\":\"9\",\"status\":\"pre\",\"date\":\"2026-11-08T14:00Z\",\"fullStatus\":{\"displayClock\":\"0'\",\"type\":{\"completed\":false,\"shortDetail\":\"Sun 9:00 AM\"}}," +
+                "\"competitors\":[{\"homeAway\":\"home\",\"displayName\":\"Brighton\",\"order\":1,\"logo\":\"https://a/b.png\"}]}]}]}]}", body);
+            Assert.EndsWith("header?sport=soccer&dates=20261108", stub.Requests[0].RequestUri.AbsoluteUri);
+            await http.GetStringAsync(url);
+            Assert.Single(stub.Requests); // the second ask within a minute is the kept board
+            now = now.AddMinutes(2);
+            await http.GetStringAsync(url);
+            Assert.Equal(2, stub.Requests.Count);
+            var bad = await http.GetAsync("http://127.0.0.1:" + service.Port + "/sports/board?sport=tennis&date=20261108");
+            Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
+        }
+        finally { service.Stop(); }
+    }
+}
+
 public class SportsRelayTests : IDisposable
 {
     readonly StubUpstream stub = new StubUpstream();

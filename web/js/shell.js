@@ -11,7 +11,8 @@
     railItems = [],
     railIndex = 1,
     railPill;
-  var railFocused = false,
+  var side = false,
+    railFocused = false,
     dialog = null,
     toastNode,
     toastTimer,
@@ -159,7 +160,22 @@
   }
   // Screens tuck the tab bar away while they are scrolled down, as Apple TV does.
   function tuck(on) {
-    if (root) root.classList.toggle('bar-tucked', !!on);
+    if (root) root.classList.toggle('bar-tucked', !!on && !side);
+  }
+  // Settings › Appearance: where the bar sits, the focus colour and the clock. Applied at start and on every
+  // settings change; the bar's position only moves when it actually changes.
+  var ACCENTS = { white: '#ffffff', ice: '#9fdcff', mint: '#8ff0c4', gold: '#ffd66b', rose: '#ffb3c1', lilac: '#d4c2ff' };
+  function applyLook() {
+    var s = data.settings();
+    var wantSide = s.navLayout === 'side';
+    if (wantSide !== side) {
+      side = wantSide;
+      root.classList.toggle('nav-side', side);
+      root.classList.remove('bar-tucked');
+      if (railPill) paintRail();
+    }
+    document.documentElement.style.setProperty('--accent', ACCENTS[s.accent] || ACCENTS.white);
+    if (window.Live && Live.setClock) Live.setClock(s.clock === '12' ? true : s.clock === '24' ? false : undefined);
   }
   // Covers the stage while the next screen's data loads. Shown only if loading lasts past 250 ms so
   // fast (cached) loads don't flash; while it is up only Back is handled.
@@ -464,12 +480,15 @@
       return true;
     }
     if (railFocused) {
-      if (code === 37 || code === 39) {
-        railIndex = Math.max(0, Math.min(nav.length - 1, railIndex + (code === 39 ? 1 : -1)));
+      // The bar runs across the top (Left/Right walk it, Down enters the screen) or down the left side
+      // (Up/Down walk it, Right enters the screen), Settings › Navigation bar.
+      var along = side ? [38, 40] : [37, 39], into = side ? 39 : 40;
+      if (code === along[0] || code === along[1]) {
+        railIndex = Math.max(0, Math.min(nav.length - 1, railIndex + (code === along[1] ? 1 : -1)));
         paintRail();
         return true;
       }
-      if (code === 13 || code === 40) {
+      if (code === 13 || code === into) {
         if (nav[railIndex].key === activeNavKey()) focusScreen();
         else go(nav[railIndex].key);
         return true;
@@ -479,12 +498,13 @@
         else go('home');
         return true;
       }
-      return code === 38;
+      return side ? code === 37 : code === 38;
     }
     if (!current()) return false;
     if (current().screen.handleKey(code)) return true;
-    // Up past the top of a screen reaches the tab bar; pushed pages (a title's details) have none.
-    if (code === 38 && stack.length === 1) {
+    // Up past the top of a screen (Left past its edge, with the bar on the side) reaches the bar; pushed
+    // pages (a title's details) have none.
+    if (code === (side ? 37 : 38) && stack.length === 1) {
       focusRail();
       return true;
     }
@@ -533,8 +553,10 @@
     updateOnline();
     window.addEventListener('online', updateOnline);
     window.addEventListener('offline', updateOnline);
+    applyLook();
     if (data.onChange)
       data.onChange(function () {
+        applyLook();
         // Progress is saved every few seconds during playback; rebuilding rows behind the video
         // competes with it. The final save on close (player already closed) refreshes everything.
         if (window.Player && window.Player.isOpen()) return;
@@ -544,7 +566,8 @@
         for (var s = 0; s < stack.length; s++)
           if (stack[s].name === 'details' && stack[s].screen.refresh) stack[s].screen.refresh();
       });
-    go('home');
+    var start = data.settings().startScreen;
+    go(/^(movies|series|live)$/.test(start) ? start : 'home');
   }
   function register(name, factory) {
     registry[name] = factory;

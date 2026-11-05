@@ -30,6 +30,24 @@ body { background:var(--bg); color:var(--cream); font:400 29px Inter,Arial,Helve
 .nav-item.current { color:var(--cream); background:var(--fill); }
 .nav-item.focused { color:#000; background:var(--accent); transform:scale(1.08); box-shadow:0 12px 28px rgba(0,0,0,.45); }
 
+/* Settings › Navigation bar › Side: the same items down the left edge, icons only until the bar is focused, when
+   it widens over a dark scrim to show their names (Up/Down walk it, Right returns to the screen). Screens sit
+   100px further right, clear of the icons; pushed pages (a title's details) have no bar and use the full width. */
+.shell-root.nav-side .nav-rail { top:0; right:auto; bottom:0; width:100px; height:auto; flex-direction:column; justify-content:center; align-items:flex-start; padding:0 0 0 18px; transition:opacity 220ms ease-out,transform 340ms var(--slide-ease); }
+.shell-root.nav-side .nav-rail:before { top:0; right:auto; bottom:0; width:760px; height:auto; background:linear-gradient(90deg,rgba(0,0,0,.96),rgba(0,0,0,.9) 45%,rgba(0,0,0,0)); opacity:0; transform:translateX(-140px); transition:opacity 240ms ease-out,transform 340ms var(--slide-ease); }
+.shell-root.nav-side .nav-rail.expanded:before { opacity:1; transform:none; }
+.shell-root.nav-side .nav-item { width:300px; margin:6px 0; padding:0 15px; }
+.shell-root.nav-side .nav-item .kit-icon { display:block; }
+.shell-root.nav-side .nav-label,.shell-root.nav-side .nav-item-search .nav-label,.shell-root.nav-side .nav-item-settings .nav-label { display:block; margin-left:22px; opacity:0; transform:translateX(-12px); transition:opacity 180ms ease-out,transform 300ms var(--slide-ease); }
+.shell-root.nav-side .nav-rail.expanded .nav-label { opacity:1; transform:none; transition-delay:60ms; }
+/* Collapsed, the current screen's icon sits in a round fill of its own (the item itself is full width). */
+.shell-root.nav-side .nav-item.current { background:transparent; }
+.shell-root.nav-side .nav-rail:not(.expanded) .nav-item.current { color:var(--cream); }
+.shell-root.nav-side .nav-rail:not(.expanded) .nav-item.current:after { content:''; position:absolute; top:0; left:0; z-index:-1; width:64px; height:64px; border-radius:32px; background:var(--fill); }
+.shell-root.nav-side .shell-brand { top:48px; left:24px; font-size:30px; opacity:0; transition:opacity 200ms ease-out; }
+.shell-root.nav-side .nav-rail.expanded .shell-brand { opacity:1; }
+.shell-root.nav-side.shell-pushed .nav-rail:not(.expanded) { opacity:0; transform:translateX(-100px); }
+.shell-root.nav-side:not(.shell-pushed) .shell-stage { left:100px; }
 .shell-toast { position:absolute; z-index:11; left:50%; bottom:64px; max-width:1000px; padding:20px 38px; border-radius:40px; background:rgba(44,44,46,.97); box-shadow:var(--lift); font-size:27px; font-weight:500; opacity:0; transform:translate3d(-50%,18px,0); transition:opacity 200ms ease-out,transform 260ms var(--slide-ease); pointer-events:none; }
 .shell-toast.visible { opacity:1; transform:translate3d(-50%,0,0); }
 .offline-banner { position:absolute; z-index:9; left:90px; bottom:64px; padding:14px 28px; border-radius:30px; background:rgba(44,44,46,.97); color:var(--cream); font-size:25px; font-weight:500; }
