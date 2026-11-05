@@ -4,6 +4,9 @@ Couch TV isn't in Samsung's app store. You install it yourself, once, using your
 build the app on your computer, sign it with your own free Samsung certificate, and send it to the TV over
 your home network. Plan on 30–60 minutes the first time; after that an update is one command.
 
+Using an AI coding agent? Point it at [AGENT_INSTALL.md](AGENT_INSTALL.md) and it does these steps for you,
+asking you only for the parts on the TV and your Samsung sign-in.
+
 **You need**
 
 - A Samsung smart TV from 2019 or later (Tizen 5+). Only a 2021 AU7700 (Tizen 6.0) has been tested, so please
