@@ -1,7 +1,9 @@
 # Sources
 
-Couch TV ships no stream sources. TMDB supplies the catalog; films, episodes and sports come from
-sources you set up in `web/js/secrets.js` (copy `web/js/secrets.example.js`):
+TMDB supplies the catalog. With nothing configured, films and episodes come from the stream server inside the TV
+service (`tv-service/CouchTor.Core/Streams/`, which finds streams on public sites) and from the Torrentio add-on;
+live sports come from PPV and iptv-org's free sports channels. You can replace or add to these in
+`web/js/secrets.js` (copy `web/js/secrets.example.js`):
 
 | Setting | What it is |
 |---|---|
@@ -10,7 +12,7 @@ sources you set up in `web/js/secrets.js` (copy `web/js/secrets.example.js`):
 | `playlists` | M3U playlists; their cricket and football channels appear on the Sports screen. Defaults to iptv-org's free sports channels. |
 | `sportsRelay` | A server for the Sports screen's schedule, speaking the [sports API](#sports-relay) below. |
 
-With no `addons` and no `provider`, playing a title says "No sources set up". The app side of the stream
+`addons` defaults to Torrentio and `provider` to the TV service's stream server. The app side of the stream
 server is `web/js/pstream.js` (`PStream.scrape`, `PStream.ping`).
 
 ## API the app expects
@@ -58,7 +60,7 @@ The app reads `RESOLUTION=WxH` from the `quality=all` playlist and classes each 
 4. Return `{ url, qualities, source, remaining }`. `remaining` tells the player whether another
    source is left to try if this one fails.
 
-Errors shown to the user: "No sources set up" (no `provider` and no `addons`), "Can't reach the stream server" (network error), "Provider HTTP n",
+Errors shown to the user: "Can't reach the stream server" (network error), "Provider HTTP n",
 "No stream found for this title", and "No other stream worked for this title" (every source
 failed).
 

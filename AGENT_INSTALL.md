@@ -124,7 +124,9 @@ good, 401 is a wrong key). The file is ignored by git; never commit it.
 If they'd rather not paste it to you, leave it empty: the app opens on a screen where they type it with the
 remote.
 
-Sources (`addons`, `provider`, `playlists` in the same file) are optional and are the person's choice. Ask if
+Couch TV plays without any sources set: built-in web sources and the Torrentio add-on for films and series,
+PPV and iptv-org for sports. Their own sources (`addons`, `provider`, `playlists` in the same file) are optional
+and are the person's choice. Ask if
 they have Stremio add-on links or an IPTV playlist; add only what they give you. Never pick or suggest sources
 for them. [docs/streaming-provider.md](docs/streaming-provider.md) explains each setting.
 
