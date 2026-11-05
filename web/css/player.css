@@ -565,5 +565,21 @@
 #player .player-row-title { overflow: hidden; font-size: 30px; font-weight: 600; line-height: 40px; white-space: nowrap; text-overflow: ellipsis; }
 #player .player-row-check { position: absolute; right: 26px; top: 26px; width: 40px; height: 40px; color: #fff; opacity: 0; }
 #player .player-row-selected .player-row-check { opacity: 1; }
+/* Episodes: a wider sheet of cards (still + progress, number · runtime, title, two lines of synopsis). */
+#player .player-panel-episodes { width: 1040px; }
+#player .player-panel-episodes .player-row { height: 180px; margin-bottom: 16px; padding: 18px 28px 18px 18px; }
+#player .player-panel-episodes .player-glass-row { height: 180px; }
+#player .player-ep-thumb { position: absolute; left: 18px; top: 18px; width: 256px; height: 144px; overflow: hidden; border-radius: 12px; background: rgba(255,255,255,.08); }
+#player .player-ep-img { display: block; width: 256px; height: 144px; object-fit: cover; }
+#player .player-ep-bar { position: absolute; left: 12px; right: 12px; bottom: 10px; height: 6px; overflow: hidden; border-radius: 3px; background: rgba(0,0,0,.55); }
+#player .player-ep-bar-fill { width: 100%; height: 100%; background: #fff; transform-origin: left center; }
+#player .player-ep-body { margin-left: 282px; }
+#player .player-panel-episodes .player-row-label { padding-top: 2px; }
+#player .player-ep-desc {
+  margin-top: 6px; overflow: hidden; color: rgba(235,235,245,.62); font-size: 23px; line-height: 31px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+#player .player-row-tag-dim { background: rgba(255,255,255,.22); color: #fff; }
+
 #player .player-badge-live { border-color: #ff453a; background: #ff453a; color: #fff; }
 #player.player-live .player-timeline { visibility: hidden; }
