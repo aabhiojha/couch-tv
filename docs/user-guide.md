@@ -10,6 +10,10 @@ Movies, Series, Sports, My List and Settings (gear). Press **Up** at the top of 
 it. **Left/Right** picks a screen, and **OK** or **Down** opens it. The bar slides away while a screen
 is scrolled down and comes back when you return to the top; a title's page has no bar.
 
+With Settings › Navigation bar › **Side**, the same screens are icons down the left edge. **Left** from a
+screen's left edge opens the bar, which widens to show the names. **Up/Down** picks a screen, and **OK**
+or **Right** opens it.
+
 **Back** on a title's page returns to the previous screen. On a main screen, **Back** goes up to the
 tab bar; **Back** there goes Home, and on Home asks "Exit Couch TV?" (Stay / Exit).
 
@@ -43,27 +47,43 @@ Everything you added with the **My List** button on a title. Empty until you add
 
 ## Sports
 
-Sports is cricket and football (soccer) only, from PPV (found by this TV) and your playlists (see [Sources](streaming-provider.md)). **On now**, **Today**, **Upcoming** and **Channels** show
-the schedule server's listings plus the cricket and football channels from your configured playlists
-(recognised by name, such as Willow, Star Sports, beIN or Premier League; other channels are left out). The screen opens on the first of these with something in it. A sport
-filter sits above the grid; it lists only the sports in the current view, most listed first, and hides
-when there is just one. Feeds in every commentary language are listed, English, Hindi and Nepali first.
-Availability of Hindi or Nepali commentary depends on the providers; it is not inferred from a team or
-channel name. Times use the
-TV's configured local timezone.
+Sports works like a scores site, for cricket and football (soccer). Fixtures, scores and tables come from
+ESPN. Streams come from PPV (found by this TV) and your playlists (see [Sources](streaming-provider.md)).
+Three tabs sit at the top: **Matches**, **Tables** and **Channels**.
 
-Cards count down to events starting within a day (**In 3 h 10 min**), and the line under the grid
-shows the focused card's watch options, languages and how long ago it started or until it starts.
-Today lists events scheduled now first, then later ones, then finished ones. When nothing is on, On now
-names the next event. Channels lists the schedule server's sports channels first, then its other 24/7
-streams, then your playlists.
+**Matches** has three parts:
 
-**Results** lists finished cricket matches and the main football competitions' games from the last three
-days, newest first, from ESPN: football cards show the score, cricket cards who won.
+- **A date strip:** **Live** (with a count of the games on), three days back, **Today**, **Tomorrow** and the
+  week ahead.
+- **A competition row.** The **Nepal Premier League** always comes first, then the competitions you follow,
+  then the rest by live games and size.
+- **The list.** Every game of the day, grouped by competition: kick-off time, **LIVE** with the clock, or
+  **FT** or **Result**, both teams with crests, scores (cricket shows runs, wickets and overs) and the round
+  or the result. **Stream** or **Watch** marks a game this TV can play, and ★ marks one you saved.
 
-Use **Up/Down** between view tabs, sport and the grid, and **Left/Right** within each.
-**OK** on a match (live, upcoming or a result) opens its **match page**; on a channel it opens its watch options.
-**Play** starts a live match's first feed (English, Hindi or Nepali commentary when listed) straight away.
+Beside the list, a panel shows everything known about the focused game: the competition and round, both
+crests, the score or kick-off, a countdown, the venue, the TV channel, the streams and their languages,
+and whether a reminder is set.
+
+Opening Sports puts the focus on the first live game, or else the next one to start. **Up** climbs to the
+competitions, then the dates. **Back** returns to the date strip.
+
+**OK** on a game opens its **match page**. **Play** watches a game that is on (English, Hindi or Nepali
+commentary first) or sets a reminder for a later one. **OK** on a competition follows it (★): its games
+come first, here and in Tables. Settings › Followed competitions lists the ones you follow.
+
+**Tables** has league tables for the Nepal Premier League and the main football competitions. Each row
+carries a coloured edge for what its place is worth (Champions League, relegation and so on), and a team on
+now shows **LIVE**. The panel shows the focused team's record. **OK** opens that team's next game.
+
+**Channels** lists the always-on sports channels: the schedule server's own first, then the cricket and
+football channels from your playlists (recognised by name, such as Willow, Star Sports, beIN or Premier
+League). **OK** lists a channel's watch options and adds it to My Sports. **Play** starts it.
+
+Times use the TV's timezone (Settings › Clock picks 12- or 24-hour). Games refresh every minute while the
+screen is open, keeping your place. On the TV, ESPN's daily boards come through the TV's own service, which
+cuts them to about 7% of their size so the screen stays quick. If ESPN can't be reached, the list falls
+back to the games that have a stream.
 
 ### Match page
 
@@ -79,17 +99,9 @@ lists them all, and **My Sports** (or **Remind me**) saves it. A finished match 
   **Match notes** (toss, points).
 
 A live match's page refreshes every minute. A listing that ESPN doesn't cover (some channels and minor
-fixtures) shows only its watch buttons. Upcoming events more than 15 minutes away show their start time instead of
-opening a player. **Scheduled now** describes the provider's time window, not a verified live match
-status. Unknown end times are not invented: an event without one stays in On now for its sport's usual
-length (2.5 h for football, 8 h for cricket), then
-shows **Status unknown** in Today.
-
-**OK** also offers **Add to My Sports** (or **Remove from My Sports**). Saved channels and matches show a ★,
-saved channels come first in Channels, and all of them appear in the Home launcher's **My Sports** row. For a
-match more than 15 minutes away, **OK** offers **Remind me on the Home screen** instead: the launcher shows a
-banner from 10 minutes before kick-off, and Couch TV shows a message 5 minutes before if it's open. A saved
-match leaves the list 12 hours after it starts.
+fixtures) shows only its watch buttons. **Remind me** also works for a game that has no stream yet: the
+Home launcher shows a banner from 10 minutes before kick-off, and Couch TV shows a message 5 minutes before
+if it's open. A saved match leaves the list 12 hours after it starts.
 
 Alternate feeds are grouped under their event. If a selected feed fails, the player tries up to two
 other feeds before showing its error. **Back** closes playback and returns to the current selection.
@@ -162,7 +174,16 @@ after 95 %. Resuming backs up 5 seconds so you don't miss a line.
 | Sources | Torrent server | Shows Connected or Not reachable. OK tests again |
 | Subtitles | Show subtitles | Turns subtitles on automatically when a title has them |
 | Subtitles | Subtitle size | Small, Medium or Large, with a live preview |
-| Display | Remove animations | Turns off fades, slides and zooms so everything changes instantly. Loading indicators still move |
+| Appearance | Navigation bar | Top (tabs across the top, as on Apple TV) or Side (icons down the left edge that widen with their names) |
+| Appearance | Focus colour | White, Ice blue, Mint, Gold, Rose or Lilac for whatever is selected; text on it stays dark |
+| Appearance | Clock | The TV's setting, 12-hour or 24-hour times |
+| Appearance | Open on | The screen Couch TV starts on: Home, Sports, Movies or Series |
+| Appearance | Remove animations | Turns off fades, slides and zooms so everything changes instantly. Loading indicators still move |
+| Appearance | Navigation clicks | A soft click as focus moves, as on Apple TV |
+| Sports | Sports shown | Cricket & football, Cricket or Football: games, tables and channels |
+| Sports | Sports opens on | Today (every game of the day) or Live (only what's on) |
+| Sports | Hide scores | Keeps scores and results off the lists and the panel; the match page still shows them |
+| Sports | Followed competitions | The competitions you follow, which come first. OK stops following one |
 | Library | Clear watch history | Empties Continue Watching and forgets resume points (asks first) |
 | Library | Clear My List | Removes every saved title (asks first) |
 | Library | Clear recent searches | Forgets the recent searches |

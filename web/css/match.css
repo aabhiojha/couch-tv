@@ -13,10 +13,10 @@
 .match-team { font-size:40px; font-weight:700; line-height:1.15; letter-spacing:-.4px; }
 .match-runs { min-height:36px; margin-top:12px; color:var(--muted); font-size:30px; font-weight:600; }
 .match-side.winner .match-runs { color:#fff; }
-.match-middle { width:440px; padding-top:44px; }
+.match-middle { width:560px; padding-top:44px; }
 .match-score { font-size:112px; font-weight:700; line-height:1; letter-spacing:-2px; font-variant-numeric:tabular-nums; }
 .match-score-time { font-size:64px; letter-spacing:-1px; color:rgba(255,255,255,.9); }
-.match-status { display:inline-block; margin-top:22px; padding:8px 20px; border-radius:22px; background:var(--fill); font-size:26px; font-weight:600; }
+.match-status { display:inline-block; margin-top:22px; padding:8px 20px; border-radius:22px; background:var(--fill); font-size:26px; font-weight:600; white-space:nowrap; }
 .match-status:empty { display:none; }
 .match-status.live { background:#e5352b; color:#fff; letter-spacing:1px; }
 .match-hero.is-live .match-status.live { animation:match-pulse 2s ease-in-out infinite; }

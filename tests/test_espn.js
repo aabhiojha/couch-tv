@@ -1,4 +1,4 @@
-// Espn: results cards and match normalization from trimmed ESPN payloads.
+// Espn: fixtures, tables and match normalization from trimmed ESPN payloads.
 const assert = require('assert');
 const Espn = require('../web/js/espn.js');
 
@@ -60,17 +60,49 @@ assert.strictEqual(c.summary, 'India won by 5 wkts');
 assert.deepStrictEqual(c.scorecards.map(s => [s.kind, s.rows.map(r => r.name), s.didNotBat]), [['batting', ['V Kohli'], ['Arshdeep Singh']]]);
 assert.deepStrictEqual(c.notes, ['Toss: India, elected to field first']);
 
-// Results: finished games only; postponed ones are "post" but not completed.
-const league = { name: 'English Premier League', slug: 'eng.1' };
-const game = (status, completed) => ({ id: '9', status: status, date: '2026-11-01T16:30Z', fullStatus: { type: { completed: completed } },
-  competitors: [{ homeAway: 'away', displayName: 'Arsenal', abbreviation: 'ARS', score: '2', logo: 'https://a/ars.png' },
-    { homeAway: 'home', displayName: 'Liverpool', abbreviation: 'LIV', score: '1', logo: 'http://insecure' }] });
-const card = Espn.resultCard('soccer', league, game('post', true));
-assert.strictEqual(card.title, 'Liverpool vs Arsenal');
-assert.strictEqual(card.score.line, 'LIV 1 – 2 ARS');
-assert.deepStrictEqual(card.crests, ['', 'https://a/ars.png']);
-assert.deepStrictEqual(card.espn, { sport: 'soccer', league: 'eng.1', event: '9' });
-assert.strictEqual(Espn.resultCard('soccer', league, game('post', false)), null);
-assert.strictEqual(Espn.resultCard('soccer', league, game('in', false)), null);
+// Fixtures: a board's games in our competitions; football home side first, postponed games marked off.
+const team = (side, name, abbr, score, extra) => Object.assign({ homeAway: side, displayName: name, abbreviation: abbr, score: score,
+  logo: 'https://a.espncdn.com/i/teamlogos/soccer/500/1.png', logoDark: 'https://a.espncdn.com/i/teamlogos/soccer/500-dark/1.png' }, extra);
+const board = { sports: [{ leagues: [
+  { slug: 'eng.1', name: 'English Premier League', abbreviation: 'Premier League', events: [
+    { id: '9', status: 'post', date: '2026-11-01T16:30Z', location: 'Anfield', broadcast: 'Peacock', fullStatus: { type: { completed: true, shortDetail: 'FT' } },
+      competitors: [team('away', 'Arsenal', 'ARS', '2', { winner: true }), team('home', 'Liverpool', 'LIV', '1')] },
+    { id: '10', status: 'post', date: '2026-11-01T19:00Z', fullStatus: { type: { completed: false, description: 'Postponed' } },
+      competitors: [team('home', 'Everton', 'EVE', ''), team('away', 'Fulham', 'FUL', '')] }] },
+  { slug: 'xyz.9', name: 'Somewhere Else', events: [{ id: '11', status: 'pre', date: '2026-11-01T12:00Z', competitors: [team('home', 'A', 'A', ''), team('away', 'B', 'B', '')] }] }] }] };
+const games = Espn.parseBoard('soccer', board);
+assert.deepStrictEqual(games.map(g => g.id), ['espn:9', 'espn:10']);
+assert.strictEqual(games[0].title, 'Liverpool vs Arsenal');
+assert.strictEqual(games[0].competition, 'Premier League');
+assert.strictEqual(games[0].state, 'post');
+assert.strictEqual(games[0].teams[1].winner, true);
+assert.ok(/500-dark/.test(decodeURIComponent(games[0].teams[0].logo)), 'dark-background crests');
+assert.deepStrictEqual(games[0].espn, { sport: 'soccer', league: 'eng.1', event: '9' });
+assert.strictEqual(games[1].state, 'off');
+assert.strictEqual(games[1].detail, 'Postponed');
+
+// Cricket: domestic first-class competitions are left out; Nepal's league and tours stay; "(NPL)" suffixes go.
+const cricketBoard = { sports: [{ leagues: [
+  { id: '23081', slug: '23081', name: 'Nepal Premier League', events: [{ id: '1', status: 'pre', date: '2026-11-05T06:45Z', title: '14th Match',
+    competitors: [{ displayName: 'Janakpur Bolts (NPL)', abbreviation: 'JAB', order: 1 }, { displayName: 'Lumbini Lions (NPL)', abbreviation: 'LUL', order: 2 }] }] },
+  { id: '8050', slug: '8050', name: 'Ranji Trophy', events: [{ id: '2', status: 'in', date: '2026-11-05T04:00Z',
+    competitors: [{ displayName: 'Delhi' }, { displayName: 'Assam' }] }] },
+  { id: '24707', slug: '24707', name: 'Sri Lanka tour of Pakistan 2026/27', events: [{ id: '3', status: 'in', date: '2026-11-04T05:00Z',
+    fullStatus: { summary: 'PCB XI trail by 180 runs' }, competitors: [{ displayName: 'Sri Lanka', score: '223/7d', order: 1 }, { displayName: 'PCB XI', score: '43/2 (15 ov)', order: 2 }] }] }] }] };
+const npl = Espn.parseBoard('cricket', cricketBoard);
+assert.deepStrictEqual(npl.map(g => g.id), ['espn:1', 'espn:3']);
+assert.strictEqual(npl[0].title, 'Janakpur Bolts vs Lumbini Lions');
+assert.strictEqual(npl[0].round, '14th Match');
+assert.strictEqual(npl[1].competition, 'Sri Lanka tour of Pakistan');
+assert.strictEqual(npl[1].summary, 'PCB XI trail by 180 runs');
+
+// Tables: rows in rank order with the right columns per sport.
+const table = Espn.readStandings('cricket', { name: 'Nepal Premier League', children: [{ name: '', standings: { entries: [
+  { team: { id: '2', displayName: 'Biratnagar Kings (NPL)' }, stats: [{ abbreviation: 'R', displayValue: '2' }, { abbreviation: 'M', displayValue: '4' }, { abbreviation: 'PT', displayValue: '4' }, { abbreviation: 'NRR', displayValue: '0.408' }] },
+  { team: { id: '1', displayName: 'Lumbini Lions (NPL)' }, stats: [{ abbreviation: 'R', displayValue: '1' }, { abbreviation: 'M', displayValue: '3' }, { abbreviation: 'PT', displayValue: '5' }] }] } }] });
+assert.deepStrictEqual(table.groups[0].rows.map(r => [r.rank, r.team, r.points]), [[1, 'Lumbini Lions', '5'], [2, 'Biratnagar Kings', '4']]);
+assert.strictEqual(table.groups[0].rows[1].diff, '0.408');
+assert.strictEqual(table.columns[4], 'NRR');
+assert.throws(() => Espn.readStandings('soccer', { children: [] }));
 assert.strictEqual(Espn.ref({ sport: 'soccer', league: 'eng.1', event: 'x' }), null);
 console.log('ok (espn)');

@@ -253,11 +253,17 @@
   }
   // Date and number formats, each built once: toLocale*String with options builds a new ICU formatter per call,
   // 3.6 ms each on the TV against 0.03 ms for a kept one (a Sports grid formats every card's start).
-  var FORMATS = { time: { hour: 'numeric', minute: '2-digit' }, day: { weekday: 'short', month: 'short', day: 'numeric' },
+  var FORMATS = { time: { hour: 'numeric', minute: '2-digit' }, weekday: { weekday: 'short' }, day: { weekday: 'short', month: 'short', day: 'numeric' },
     date: { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }, longDay: { weekday: 'long', month: 'short', day: 'numeric' } };
-  var formatters = {};
+  var formatters = {}, hour12;
+  // Settings › Clock: true or false forces 12- or 24-hour times; undefined keeps the TV's own.
+  function setClock(twelve) {
+    hour12 = twelve;
+    formatters = {};
+  }
   function format(kind, value) {
-    if (!formatters[kind]) formatters[kind] = kind === 'number' ? new Intl.NumberFormat() : new Intl.DateTimeFormat([], FORMATS[kind]);
+    if (!formatters[kind]) formatters[kind] = kind === 'number' ? new Intl.NumberFormat() :
+      new Intl.DateTimeFormat([], kind === 'time' && hour12 !== undefined ? Object.assign({ hour12: hour12 }, FORMATS.time) : FORMATS[kind]);
     return formatters[kind].format(value);
   }
   function startLabel(item, now) {
@@ -304,9 +310,76 @@
     select(items, view, 'all', preference, now).forEach(function (item) { counts[item.sport] = (counts[item.sport] || 0) + 1; });
     return Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a] || a.localeCompare(b); });
   }
+  // ---- The guide: ESPN's fixtures with the catalog's streams attached ----
+  // A catalog listing ("AC Milan vs. Ferencvaros") belongs to the fixture whose two teams both match its title
+  // and that starts within 3 hours of it; exact names beat partial ones (as the TV service's SportsScores does).
+  function normal(name) {
+    return String(name || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/\binternazionale\b/g, 'inter').replace(/\([^)]*\)|\b(?:fc|cf|afc|sc|ac|club|the|cd|sk|if|fk)\b|[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function sidesOf(title) {
+    var parts = String(title || '').split(/\s+(?:vs?\.?|v)\s+/i);
+    return parts.length === 2 ? parts : null;
+  }
+  function fit(side, team) {
+    if (side.length < 3 || team.length < 3) return 0;
+    if (side === team) return 3;
+    if (side.indexOf(team + ' ') === 0 || side.slice(-team.length - 1) === ' ' + team) return 2;
+    return side.indexOf(team) >= 0 || team.indexOf(side) >= 0 ? 1 : 0;
+  }
+  // "PPV · HD | Europa League" → "Europa League"; broadcasters ("Apple TV", "ESPN+") aren't competitions.
+  function competitionOf(item) {
+    var label = ((item.streams || [])[0] || {}).label || '';
+    var name = label.indexOf('|') >= 0 ? label.slice(label.lastIndexOf('|') + 1).trim() : '';
+    return /^(?:apple tv|espn\+?|paramount\+|peacock|dazn|tv4 play|kayo|willow|fox|tsn|sky|bein|ligue 1\+|viaplay|tnt)/i.test(name) ? '' : name;
+  }
+  // fixtures: Espn.fixtures' games; events: catalog events of the same window. Returns the fixtures (with the
+  // streams of their listing) plus the listings no fixture claimed, shaped like fixtures.
+  function guide(fixtures, events, now) {
+    var out = fixtures.map(function (f) { return Object.assign({}, f, { streams: [] }); });
+    var extra = [];
+    events.forEach(function (item) {
+      var sides = sidesOf(item.title), best = null, bestFit = 0;
+      if (sides) {
+        var a = normal(sides[0]), b = normal(sides[1]);
+        out.forEach(function (f) {
+          if (f.sport !== item.sport || Math.abs(f.startsAt - item.startsAt) > 3 * 3600000) return;
+          var x = normal(f.teams[0].name), y = normal(f.teams[1].name);
+          var score = Math.max(fit(a, x) * fit(b, y), fit(a, y) * fit(b, x));
+          if (score > bestFit && !f.listing) { bestFit = score; best = f; }
+        });
+      }
+      if (best) {
+        best.listing = item.id;
+        best.streams = item.streams;
+        best.thumb = item.thumb;
+        return;
+      }
+      var status = state(item, now);
+      extra.push(Object.assign({}, item, { fixture: false, listing: item.id,
+        teams: (sides || [item.title, '']).map(function (name) { return { name: String(name).trim(), short: '', logo: '', score: '' }; }),
+        competition: competitionOf(item) || 'More ' + item.sport.toLowerCase(), league: '', round: '', venue: '',
+        state: item.score ? item.score.state : status === 'Upcoming' ? 'pre' : status === 'Scheduled now' ? 'in' : 'post',
+        detail: item.score ? item.score.line : '', clock: '', summary: item.score ? item.score.summary : '' }));
+    });
+    return out.concat(extra).sort(function (a, b) { return a.startsAt - b.startsAt; });
+  }
+  // Competitions in a list of games, the household's own first: Nepal's league, then followed ones, then by size.
+  function competitions(games, followed) {
+    var by = {}, order = [];
+    games.forEach(function (g) {
+      var key = g.league || g.competition;
+      if (!by[key]) { by[key] = { key: key, title: g.competition, sport: g.sport, league: g.league, count: 0, live: 0 }; order.push(by[key]); }
+      by[key].count++;
+      if (g.state === 'in') by[key].live++;
+    });
+    function rank(c) { return c.league === '23081' ? 0 : (followed || []).indexOf(c.key) >= 0 ? 1 : c.league ? 2 : 3; }
+    return order.sort(function (a, b) { return rank(a) - rank(b) || b.live - a.live || b.count - a.count || a.title.localeCompare(b.title); });
+  }
   var api = { parse: parse, merge: merge, channels: channels, groups: groups, sports: sports, relayUrl: relayUrl,
     language: language, languageName: languageName, preferredStreams: preferredStreams,
-    readCatalog: readCatalog, health: health, format: format, sportOf: sportOf, state: state, timing: timing, startLabel: startLabel, select: select, sportsIn: sportsIn };
+    readCatalog: readCatalog, health: health, format: format, sportOf: sportOf, state: state, timing: timing, startLabel: startLabel, select: select, sportsIn: sportsIn,
+    guide: guide, competitions: competitions, normal: normal, setClock: setClock };
   root.Live = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

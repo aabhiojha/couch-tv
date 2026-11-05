@@ -168,7 +168,34 @@ assert.deepEqual(Live.select(lineup, 'channels', 'all', 'all', now).map(x => x.i
     await Live.sports(['http://lan:8790/live.m3u']);
     assert.equal(retried, 1);
   } finally { Date.now = realNow; }
-  console.log('ok test_live');
+  // Guide: a catalog listing joins the fixture whose teams both match and that starts within 3 h; the rest are kept.
+{
+  const t0 = Date.UTC(2026, 10, 8, 14, 0);
+  const fx = (id, a, b, at, sport) => ({ id: 'espn:' + id, fixture: true, sport: sport || 'Football', startsAt: at, league: 'eng.1',
+    competition: 'Premier League', state: 'pre', teams: [{ name: a }, { name: b }], streams: [] });
+  const ev = (id, title, at, label) => ({ id: id, kind: 'event', title: title, sport: 'Football', startsAt: at, endsAt: at + 2 * 3600000,
+    streams: [{ url: 'http://x/' + id, label: label || 'PPV · HD | Premier League', language: 'en' }] });
+  const fixtures = [fx(1, 'Brighton & Hove Albion', 'Brentford', t0), fx(2, 'Internazionale', 'Como', t0), fx(3, 'India', 'Australia', t0, 'Cricket'), fx(4, 'India A', 'Australia A', t0, 'Cricket')];
+  const events = [ev('ppv:1', 'Brighton & Hove Albion vs. Brentford', t0), ev('ppv:2', 'Inter Milan vs. Como', t0 + 3600000),
+    ev('ppv:3', 'Degerfors IF vs. GAIS', t0, 'PPV · HD | TV4 Play'), Object.assign(ev('ppv:4', 'India vs Australia', t0), { sport: 'Cricket' }),
+    ev('ppv:5', 'Brentford vs Brighton', t0 + 6 * 3600000)];
+  const g = Live.guide(fixtures, events, t0 - 3600000);
+  const by = id => g.filter(x => x.id === id)[0];
+  assert.strictEqual(by('espn:1').listing, 'ppv:1');
+  assert.strictEqual(by('espn:2').streams.length, 1, 'Inter Milan is Internazionale');
+  assert.strictEqual(by('espn:3').listing, 'ppv:4', 'exact names beat India A');
+  assert.strictEqual(by('espn:4').streams.length, 0);
+  const extra = g.filter(x => !x.fixture);
+  assert.deepStrictEqual(extra.map(x => x.listing), ['ppv:3', 'ppv:5'], 'unmatched and too far apart stay as listings');
+  assert.strictEqual(extra[0].competition, 'More football', 'a broadcaster is not a competition');
+  assert.deepStrictEqual(extra[0].teams.map(t => t.name), ['Degerfors IF', 'GAIS']);
+  // Competitions: the Nepal Premier League first, then followed ones, then by live games and size.
+  const comps = Live.competitions([{ league: 'eng.1', competition: 'PL', state: 'pre' }, { league: 'eng.1', competition: 'PL', state: 'pre' },
+    { league: 'esp.1', competition: 'LALIGA', state: 'in' }, { league: 'ita.1', competition: 'Serie A', state: 'pre' },
+    { league: '23081', competition: 'Nepal Premier League', state: 'pre' }], ['ita.1']);
+  assert.deepStrictEqual(comps.map(c => c.key), ['23081', 'ita.1', 'esp.1', 'eng.1']);
+}
+console.log('ok test_live');
 })().catch(e => { console.error(e); process.exit(1); });
 
 // Settings › Sports streams: a newer failure than success means the resolver is broken; a test outranks both.
