@@ -5,7 +5,7 @@
 
 A good-looking app for watching films, series and live sports on a Samsung smart TV.
 
-![Couch TV's Home screen](docs/screenshots/home.png)
+![Couch TV's Home screen](docs/screenshots/tv-01-home.png)
 
 - Browse trending films and series, search, and keep a My List.
 - Pick up where you left off, with subtitles and the next episode playing on its own.
