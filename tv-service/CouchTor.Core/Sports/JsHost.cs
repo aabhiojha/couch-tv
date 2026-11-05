@@ -176,6 +176,8 @@ namespace CouchTor.Sports
         public readonly JsObject Window = new JsObject("Window"), Document = new JsObject("HTMLDocument");
         /// <summary>Every URL the module builds a Request for, in order.</summary>
         public readonly List<string> RequestUrls = new List<string>();
+        /// <summary>Strings the module set as an object's <c>file</c>: the stream URL it gives a player (PPV's gasm.wasm).</summary>
+        public readonly List<string> Files = new List<string>();
         public readonly List<string> Log = new List<string>();
         /// <summary>Milliseconds per phase, for diagnostics.</summary>
         public readonly List<string> Timings = new List<string>();
@@ -510,7 +512,15 @@ namespace CouchTor.Sports
                 case "set":
                     if (arity == 5) // Headers.set(name, value)
                         return a => { ((JsHeaders)Ref(a[0])).Values[ReadString(I32(a[1]), I32(a[2]))] = ReadString(I32(a[3]), I32(a[4])); return None; };
-                    return a => { if (Ref(a[0]) is JsObject o && Ref(a[1]) is string key) o.Set(key, Ref(a[2])); return new Value(1); };
+                    return a =>
+                    {
+                        if (Ref(a[0]) is JsObject o && Ref(a[1]) is string key)
+                        {
+                            o.Set(key, Ref(a[2]));
+                            if (key == "file" && Ref(a[2]) is string file) Files.Add(file);
+                        }
+                        return new Value(1);
+                    };
                 case "set_method": return a => { ((JsObject)Ref(a[0])).Set("method", ReadString(I32(a[1]), I32(a[2]))); return None; };
                 case "set_mode": return a => { ((JsObject)Ref(a[0])).Set("mode", I32(a[1])); return None; };
                 case "set_body": return a => { ((JsObject)Ref(a[0])).Set("body", Ref(a[1])); return None; };

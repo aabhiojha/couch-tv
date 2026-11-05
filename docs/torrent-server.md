@@ -1,16 +1,16 @@
 # Torrent streaming server
 
 Torrent sources from Stremio add-ons play through the service **on the TV** by default, at
-`http://<TV LAN IP>:11470` (from `webapis.network.getIp()`). See
+`http://<TV LAN IP>:11471` (from `webapis.network.getIp()`). See
 [TV torrent service](tv-torrent-service.md) for its build, installation and measurements. The app
-checks `/heartbeat` at startup, tries to launch `CouchTor01.Service` if needed, and waits up to
+checks `/heartbeat` at startup, tries to launch `CouchTV001.Service` if needed, and waits up to
 10 seconds before falling back to another source. Settings > Sources shows **On this TV** and
 its connection status. The TV service has no transcoding: DTS/TrueHD sources are excluded.
 
 For desktop development, Stremio's official streaming server on the laptop is an optional override:
 set `COUCH_SECRETS.torrentServer` in `web/js/secrets.js`, for example
 `'http://192.168.1.34:11470'`. The override retains HLS audio transcoding. Without an override or
-TV network API, desktop uses `http://127.0.0.1:11470`. Tracker entries from add-ons are passed as
+TV network API, desktop uses `http://127.0.0.1:11471`. Tracker entries from add-ons are passed as
 repeated encoded `tr` query parameters on torrent URLs.
 
 `./build.sh` runs desktop checks only. `./build.sh install` also runs `tv-service/build.sh install`, which

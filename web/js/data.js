@@ -61,12 +61,18 @@ window.Data = (function () {
 
   function loadLibrary() {
     var lib = { progress: {}, items: {}, myList: [], recent: [], sports: [],
-                settings: { autoplayNext: true, subtitles: false, subtitleSize: 'medium', quality: 'best', sourceOrder: 'addons-first', askSource: true, lastSource: 'torrent', noMotion: false, navClicks: true } };
+                settings: { autoplayNext: true, subtitles: false, subtitleSize: 'medium', quality: 'best', sourceOrder: 'provider-first', askSource: false, lastSource: 'web', noMotion: false, navClicks: true, sourcesV: 2 } };
     try {
       var saved = JSON.parse(localStorage.getItem(LIBRARY_KEY));
       if (saved) {
         for (var key in lib) if (saved[key] !== undefined && key !== 'settings') lib[key] = saved[key];
         for (var s in saved.settings || {}) lib.settings[s] = saved.settings[s];
+        // v2: web streams first without asking (torrents are the fallback); older saves asked every time.
+        if (!(saved.settings && saved.settings.sourcesV >= 2)) {
+          lib.settings.askSource = false;
+          lib.settings.sourceOrder = 'provider-first';
+          lib.settings.sourcesV = 2;
+        }
       }
     } catch (e) { /* corrupt or unavailable storage: start fresh */ }
     // Internet Archive titles are no longer in the catalog; drop them from history and My List.
@@ -382,10 +388,18 @@ window.Data = (function () {
       return because.promise;
     },
 
+    // A WebVTT/SRT file, or an HLS subtitle playlist (web streams): its segments are fetched and joined.
     loadSubtitles: function (url) {
-      return fetch(url).then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.text();
+      function text(u) {
+        return fetch(u).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        });
+      }
+      return text(url).then(function (body) {
+        if (body.replace(/^\uFEFF/, '').trim().indexOf('#EXTM3U') !== 0) return body;
+        var parts = body.split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l && l[0] !== '#'; });
+        return Promise.all(parts.map(function (u) { return text(new URL(u, url).href); })).then(function (all) { return all.join('\n\n'); });
       }).then(parseSubtitles);
     },
 

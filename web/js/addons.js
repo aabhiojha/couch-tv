@@ -16,7 +16,7 @@
       hevc: has(/\b(?:x265|h\s?265|hevc)\b/i), tenBit: has(/\b(?:10\s?bit|hi10p?)\b/i),
       hdr: has(/\b(?:hdr(?:10\+?)?)\b/i), dv: has(/\b(?:dv|dovi|dolby vision)\b/i),
       dts: has(/\bdts\b/i), truehd: has(/\btruehd\b/i), atmos: has(/\batmos\b/i),
-      cam: has(/\b(?:cam|hdcam|ts|telesync|hdts)\b/i)
+      cam: has(/\b(?:cam|hdcam|ts|telesync|hdts)\b/i) || /\b(?:hdcam|camrip|telesync|hdts)\b/i.test(text) // Torrentio cuts long names short
     };
     var qualityText = String(release).toLowerCase();
     if (!/\b(?:2160p?|4k|uhd|1080p?|720p?|480p?)\b/.test(qualityText)) qualityText = text.toLowerCase();
@@ -38,7 +38,24 @@
       needsTranscode: tags.dts || tags.truehd, score: 0
     };
   }
-  function rank(streams, quality) {
+  // Torrentio marks audio languages with flags; Spanish releases often only with words or the group name.
+  var FLAG = /\uD83C([\uDDE6-\uDDFF])\uD83C([\uDDE6-\uDDFF])/g;
+  var COUNTRY = { ja: 'JP', ko: 'KR', zh: 'CN', hi: 'IN', ta: 'IN', te: 'IN', fr: 'FR', es: 'ES', de: 'DE', it: 'IT', pt: 'PT', ru: 'RU' };
+  // ponytail: word list and the YG group are a heuristic; extend when another dub slips through.
+  var FOREIGN_WORDS = /\b(?:latino|castellano|espa[nñ]ol|spanish|spa|esp|yg|french|vff|vf2|truefrench|german|ita|italian|rus|russian|hindi)\b/i;
+  var ENGLISH_WORDS = /\b(?:eng|english|en)\b/i;
+  // True when the release's audio looks like only a dub in a language other than English or the original.
+  function foreignDub(stream, originalLanguage) {
+    var text = String(stream.text || '').replace(/[._]/g, ' ');
+    var original = COUNTRY[originalLanguage] || '', countries = [];
+    text.replace(FLAG, function (match, a, b) {
+      countries.push(String.fromCharCode(a.charCodeAt(0) - 0xDDE6 + 65, b.charCodeAt(0) - 0xDDE6 + 65));
+      return match;
+    });
+    var english = ENGLISH_WORDS.test(text) || countries.some(function (c) { return c === 'GB' || c === 'US' || c === original; });
+    return !english && (countries.length > 0 || FOREIGN_WORDS.test(text));
+  }
+  function rank(streams, quality, originalLanguage) {
     var wanted = quality === 'best' || !quality ? 1080 : Number(quality);
     var order = wanted === 2160 ? [2160, 1080, 720, 480, 0]
       : wanted === 1080 ? [1080, 2160, 720, 480, 0]
@@ -49,7 +66,9 @@
       // Quality wins; logarithmic peers limit large swarms, then audio cost and HTTP break close ties.
       stream.score = (5 - (place < 0 ? 4 : place)) * 1000
         + (stream.kind === 'http' ? 200 : stream.seeders ? Math.log(1 + stream.seeders) * 10 : -100)
-        - (stream.needsTranscode ? 25 : 0);
+        - (stream.needsTranscode ? 25 : 0)
+        // A foreign dub sinks below every other quality: a 720p you can follow beats a 1080p you can't.
+        - (foreignDub(stream, originalLanguage) ? 5000 : 0);
       return stream;
     }).sort(function (a, b) { return b.score - a.score; });
   }

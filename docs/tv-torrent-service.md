@@ -1,10 +1,16 @@
 # Torrent service on the TV
 
-The TV streams torrents itself: **`CouchTor01.Service`**, a Tizen .NET service app built from
+The TV streams torrents itself: **`CouchTV001.Service`**, a Tizen .NET service app built from
 [`tv-service/`](../tv-service), downloads with MonoTorrent and serves files over HTTP on
-**port 11470** of the TV's LAN IP, with the same paths and fields as the Stremio server
-([torrent-server.md](torrent-server.md)), so the app keeps one code path. The laptop server is now only
-an optional override.
+**port 11471** of the TV's LAN IP, with the same paths and fields as the Stremio server
+([torrent-server.md](torrent-server.md)), so the app keeps one code path. The same service finds web streams and
+sports. The laptop server is now only an optional override.
+
+The service ships **inside the app's package** (Tizen's hybrid layout: service at the root, web app in `res/wgt`),
+because the TV lets an app launch only a service from its own package. As a separate package (`CouchTor01`),
+`tizen.application.launch` and `launchAppControl` both failed with UnknownError. The TV also ignores `on-boot` for
+developer apps, so nothing starts the service at power-on: the app launches it when it opens or returns to the
+foreground, and before it needs a stream (2026-11-04: running about 8 s after the app opened).
 
 Everything here was measured on the TV (UA55AU7700, Tizen 6.0, armv7, .NET Core 3.1.3, at
 192.168.1.6) from the laptop with `curl`, on 2026-10-21, with the legal Ubuntu 24.04.4 desktop ISO
@@ -14,20 +20,18 @@ Everything here was measured on the TV (UA55AU7700, Tizen 6.0, armv7, .NET Core 
 
 | | |
 |---|---|
-| Build + sign | `tv-service/build.sh` → `tv-service/out/CouchTor01-1.0.0.tpk`, signed with the `couch` profile |
-| …and install + start | `tv-service/build.sh install` (kills the running service first) |
+| Build | `tv-service/build.sh` → `tv-service/out/service/` (unsigned; never install it alone, it would replace the app) |
+| …package, install + launch | `TV=<TV IP> ./build.sh install` at the repo root (one signed package with the app) |
 | Laptop tests | `tv-service/build.sh test` (xunit on net8.0: Range parsing, HTTP layer, cache eviction, address filter) |
-| Start by hand | `~/tizen-studio/tools/sdb -s 192.168.1.33:26101 shell 0 execute CouchTor01.Service` |
-| Stop | `~/tizen-studio/tools/sdb -s 192.168.1.33:26101 shell 0 kill CouchTor01.Service` |
-| Uninstall | `~/tizen-studio/tools/ide/bin/tizen uninstall -p CouchTor01.Service -s 192.168.1.33:26101` (with the package id `CouchTor01` the CLI says "package is not exist"; the app id works) |
-| Health | `curl http://192.168.1.33:11470/heartbeat` → `{"success":true}` |
-| Log | `curl http://192.168.1.33:11470/log` (last 300 lines; the TV has no other log) |
-| Internals | `curl http://192.168.1.33:11470/debug` (engine loops, thread pool, disk queue, DHT, trackers, cache, threads) |
+| Start by hand | `~/tizen-studio/tools/sdb -s <TV IP>:26101 shell 0 execute CouchTV001.Service` |
+| Stop | `~/tizen-studio/tools/sdb -s <TV IP>:26101 shell 0 kill CouchTV001.Service` |
+| Health | `curl http://192.168.1.6:11471/heartbeat` → `{"success":true}` |
+| Log | `curl http://192.168.1.6:11471/log` (last 300 lines; the TV has no other log) |
+| Internals | `curl http://192.168.1.6:11471/debug` (engine loops, thread pool, disk queue, DHT, trackers, cache, threads) |
 | Measurements | `tv-service/tools/measure.sh speed|cache|cold|refhttp` (the numbers below) |
 
-Env for `build.sh`: `DOTNET` (default `~/.dotnet/dotnet`, SDK 8), `TIZEN_STUDIO` (`~/tizen-studio`),
-`TV` (`192.168.1.33:26101`), `PROFILE` (`couch`). The app starts the service with
-`tizen.application.launch('CouchTor01.Service')` (Module A).
+Env for `tv-service/build.sh`: `DOTNET` (default `~/.dotnet/dotnet`, SDK 8). The app starts the service with
+`tizen.application.launch('CouchTV001.Service')`.
 
 ## API
 
@@ -206,7 +210,7 @@ When the torrent was played before (metadata cached), the first byte comes in ab
 - **The service doesn't come back by itself after a crash.** A deliberate crash (since removed) left it
   down for 16 min, both with the manifest's `auto-restart="true"` and with a self-launching
   `AlarmManager` alarm (needs `background-category`, otherwise `NotPermittedApp`). Recovery is the app's
-  job: it relaunches `CouchTor01.Service` when `/heartbeat` fails before each torrent play. A crash is
+  job: it relaunches `CouchTV001.Service` when `/heartbeat` fails before each torrent play. A crash is
   recorded in `data/crash.txt` and the last log lines in `data/last.log`, both shown in `/log` on the
   next start.
 - **Unexplained:** the process died twice during fast downloads (10:50 during the 5.5 GiB read; 16:00 at

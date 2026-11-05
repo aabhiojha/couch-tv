@@ -32,7 +32,10 @@ namespace CouchTor.Sports
         {
             public string[] Names;
             public double Start;
+            /// <summary>Null until the game starts.</summary>
             public Score Score;
+            /// <summary>ESPN's sport ("soccer" or "cricket"), league slug and event id: the app's match page reads ESPN with these.</summary>
+            public string Sport, League, Event;
         }
 
         readonly Upstream upstream;
@@ -85,16 +88,16 @@ namespace CouchTor.Sports
 
         public static string Normal(string name) => Noise.Replace((name ?? "").ToLowerInvariant(), " ").Trim();
 
-        /// <summary>Live and finished games from one board (upcoming ones have no score yet).</summary>
+        /// <summary>Upcoming, live and finished games from one board (only live and finished ones have a score).</summary>
         public static List<Game> Parse(object json, bool football)
         {
             var result = new List<Game>();
             var leagues = (JsonReader.Get(json, "sports") as List<object> ?? new List<object>()).SelectMany(s => JsonReader.Get(s, "leagues") as List<object> ?? new List<object>());
-            foreach (var e in leagues.SelectMany(l => JsonReader.Get(l, "events") as List<object> ?? new List<object>()))
+            foreach (var (league, e) in leagues.SelectMany(l => (JsonReader.Get(l, "events") as List<object> ?? new List<object>()).Select(e => (l, e))))
             {
                 var state = JsonReader.Str(e, "status");
                 var teams = (JsonReader.Get(e, "competitors") as List<object> ?? new List<object>()).OfType<Dictionary<string, object>>().ToList();
-                if ((state != "in" && state != "post") || teams.Count != 2)
+                if ((state != "pre" && state != "in" && state != "post") || teams.Count != 2)
                     continue;
                 string S(object o, string key) => JsonReader.Str(o, key) ?? "";
                 string line;
@@ -115,14 +118,15 @@ namespace CouchTor.Sports
                 {
                     Names = teams.Select(t => Normal(S(t, "displayName"))).ToArray(),
                     Start = start.ToUnixTimeMilliseconds(),
-                    Score = new Score { State = state, Line = line, Summary = S(JsonReader.Get(e, "fullStatus"), "summary"), Crests = teams.Select(t => S(t, "logo")).ToArray() },
+                    Score = state == "pre" ? null : new Score { State = state, Line = line, Summary = S(JsonReader.Get(e, "fullStatus"), "summary"), Crests = teams.Select(t => S(t, "logo")).ToArray() },
+                    Sport = football ? "soccer" : "cricket", League = S(league, "slug"), Event = S(e, "id"),
                 });
             }
             return result;
         }
 
-        /// <summary>The score for a listing titled "A vs B" starting at <paramref name="startsAt"/> (ms), or null.</summary>
-        public static Score Match(string title, double startsAt, IEnumerable<Game> games)
+        /// <summary>The game for a listing titled "A vs B" starting at <paramref name="startsAt"/> (ms), or null.</summary>
+        public static Game Match(string title, double startsAt, IEnumerable<Game> games)
         {
             var sides = Versus.Split(title ?? "");
             if (sides.Length != 2)
@@ -143,8 +147,11 @@ namespace CouchTor.Sports
                     best = g;
                 }
             }
-            return best?.Score;
+            return best;
         }
+
+        /// <summary>The listing's "espn" field: where the app reads the match's details.</summary>
+        public static string RefJson(Game g) => Json.Object().Add("sport", g.Sport).Add("league", g.League).Add("event", g.Event).ToString();
 
         public static string ToJson(Score s) => Json.Object().Add("state", s.State).Add("line", s.Line).Add("summary", s.Summary)
             .Raw("crests", "[" + string.Join(",", s.Crests.Select(c => { var sb = new System.Text.StringBuilder(); Json.Str(sb, c); return sb.ToString(); })) + "]").ToString();

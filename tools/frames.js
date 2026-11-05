@@ -1,6 +1,6 @@
 // Frame-drop QA on the TV: attaches to a running Couch TV inspector, presses remote keys through four scenarios
 // at a person's pace, and reports dropped frames (from requestAnimationFrame gaps) and long main-thread tasks.
-// Usage: CDP=127.0.0.1:9342 [PROFILE=1] node tools/frames.js [off:shimmer,parallax,pill,fade,clicks,cover,images]
+// Usage: CDP=127.0.0.1:9342 [PROFILE=1] [ONLY=match] node tools/frames.js [off:shimmer,parallax,pill,fade,clicks,cover,images]
 //   PROFILE=1 also prints the functions that took the most CPU in each scenario; CSS='…' injects extra CSS (experiments).
 //   (start the app with `sdb shell 0 debug CouchTV001.CouchTV` and `sdb forward tcp:<port> tcp:<inspector port>`;
 //   the TV ends debug sessions after a minute or two, so keep runs short)
@@ -59,7 +59,9 @@ const SCENARIOS = [
   { name: 'home rows', setup: "Shell.go('home')", keys: [D, D, D, D, D, U, U, U, U, U] },
   { name: 'tab bar', setup: "Shell.go('home')", keys: [U, R, R, R, R, L, L, L, L, D] },
   { name: 'movies grid', setup: "Shell.go('movies')", keys: [D, D, D, D, D, D, R, R, U, U, U, U] },
-];
+  // A finished match with every section (ESPN data, so it needs the network): down through the page and back.
+  { name: 'match page', setup: "Shell.go('match',{item:{id:'qa',kind:'result',title:'Como vs Manchester United',sport:'Football',startsAt:Date.parse('2026-10-21T16:45Z'),streams:[],score:{state:'post',line:'COMO 4 – 1 MAN',summary:'',crests:[]},espn:{sport:'soccer',league:'uefa.champions',event:'401915395'}}})", wait: 6000, keys: [D, R, R, D, D, D, D, D, U, U, U, U, U, U] },
+].filter(s => !process.env.ONLY || s.name.indexOf(process.env.ONLY) >= 0);
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
@@ -96,7 +98,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   console.log('effects off:', off.join(', ') || 'none');
   for (const s of SCENARIOS) {
     await run(s.setup);
-    await sleep(2500); // let the screen load and settle before measuring
+    await sleep(s.wait || 2500); // let the screen load and settle before measuring
     if (profiling) await send('Profiler.start');
     await run('__fq.start()');
     for (const code of s.keys) { await run('__fq.key(' + code + ')'); await sleep(320); }

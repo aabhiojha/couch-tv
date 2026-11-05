@@ -9,8 +9,8 @@ html,body { width:1920px; height:1080px; margin:0; overflow:hidden; }
 body { background:var(--bg); color:var(--cream); font:400 29px Inter,Arial,Helvetica,sans-serif; -webkit-font-smoothing:antialiased; }
 [hidden] { display:none !important; }
 /* Settings > Remove animations. Loading indicators keep moving so a wait never looks like a freeze. */
-.no-motion *:not(.loader-bar):not(.player-spinner), .no-motion *:before, .no-motion *:after { transition:none !important; animation:none !important; }
-@media (prefers-reduced-motion: reduce) { *:not(.loader-bar):not(.player-spinner), *:before, *:after { transition:none !important; animation:none !important; } }
+.no-motion *:not(.loader-bar):not(.player-spinner):not(.player-ring), .no-motion *:before, .no-motion *:after { transition:none !important; animation:none !important; }
+@media (prefers-reduced-motion: reduce) { *:not(.loader-bar):not(.player-spinner):not(.player-ring), *:before, *:after { transition:none !important; animation:none !important; } }
 #app { position:relative; width:1920px; height:1080px; overflow:hidden; background:var(--bg); }
 .shell-stage { position:absolute; top:0; right:0; bottom:0; left:0; overflow:hidden; }
 .shell-stage>main { position:absolute; top:0; right:0; bottom:0; left:0; }

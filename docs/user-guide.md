@@ -43,7 +43,7 @@ Everything you added with the **My List** button on a title. Empty until you add
 
 ## Sports
 
-Sports is cricket and football (soccer) only, from your sports relay and playlists (see [Sources](streaming-provider.md)). **On now**, **Today**, **Upcoming** and **Channels** show
+Sports is cricket and football (soccer) only, from PPV (found by this TV) and your playlists (see [Sources](streaming-provider.md)). **On now**, **Today**, **Upcoming** and **Channels** show
 the schedule server's listings plus the cricket and football channels from your configured playlists
 (recognised by name, such as Willow, Star Sports, beIN or Premier League; other channels are left out). The screen opens on the first of these with something in it. A sport
 filter sits above the grid; it lists only the sports in the current view, most listed first, and hides
@@ -58,9 +58,28 @@ Today lists events scheduled now first, then later ones, then finished ones. Whe
 names the next event. Channels lists the schedule server's sports channels first, then its other 24/7
 streams, then your playlists.
 
+**Results** lists finished cricket matches and the main football competitions' games from the last three
+days, newest first, from ESPN: football cards show the score, cricket cards who won.
+
 Use **Up/Down** between view tabs, sport and the grid, and **Left/Right** within each.
-**OK** on a match or channel opens its watch options; **Play** starts the first one (English, Hindi or
-Nepali commentary when listed) straight away. Upcoming events more than 15 minutes away show their start time instead of
+**OK** on a match (live, upcoming or a result) opens its **match page**; on a channel it opens its watch options.
+**Play** starts a live match's first feed (English, Hindi or Nepali commentary when listed) straight away.
+
+### Match page
+
+The scoreboard sits over a glow in both teams' colours: crests, the score (or kick-off time), **LIVE** with the
+clock, the competition, venue, date and attendance. **Watch live** plays the preferred feed, **Watch options**
+lists them all, and **My Sports** (or **Remind me**) saves it. A finished match with clips has **Highlights**.
+**Up/Down** walk the sections below, which appear when ESPN has them:
+
+- Football: **Highlights & clips** (ESPN videos; **OK** plays one), **Timeline** (goals, cards and substitutions,
+  home on the left), **Match stats**, **Lineups** with formations, **Recent form** (each side's last five games)
+  and the **Table** around both teams.
+- Cricket: both sides' innings, the result, the latest innings' **Scorecard** (batting and bowling) and
+  **Match notes** (toss, points).
+
+A live match's page refreshes every minute. A listing that ESPN doesn't cover (some channels and minor
+fixtures) shows only its watch buttons. Upcoming events more than 15 minutes away show their start time instead of
 opening a player. **Scheduled now** describes the provider's time window, not a verified live match
 status. Unknown end times are not invented: an event without one stays in On now for its sport's usual
 length (2.5 h for football, 8 h for cricket), then
@@ -139,7 +158,7 @@ after 95 %. Resuming backs up 5 seconds so you don't miss a line.
 | Playback | Video quality | Best available, 1080p, 720p or 480p. Lower it if playback stutters |
 | Playback | Autoplay next episode | Starts the next episode after a 10 s countdown |
 | Playback | Sleep timer | Turns the TV off after 15, 30, 60, 90 or 120 minutes, even mid-film. The Home launcher keeps the timer (it also sets it), so it runs in any app |
-| Sources | Source order | Add-ons first (default) or Stream server first; failures try the next source |
+| Sources | Source order | Stream server first (default) or Add-ons first; a failed or frozen stream (25 s, torrents 45 s) tries the next source |
 | Sources | Torrent server | Shows Connected or Not reachable. OK tests again |
 | Subtitles | Show subtitles | Turns subtitles on automatically when a title has them |
 | Subtitles | Subtitle size | Small, Medium or Large, with a live preview |

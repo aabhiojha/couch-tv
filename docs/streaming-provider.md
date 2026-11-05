@@ -71,8 +71,15 @@ add them.
 
 ## Sports relay
 
-The Sports screen reads `/sports.json` from `sportsRelay`, or from the server of a configured
-`…/live.m3u` playlist:
+By default the TV's own service is the sports relay. It loads PPV's schedule (`api.ppv.st/api/streams`, cricket
+and football only) and resolves each stream on the TV. To do that it runs the embed page's WebAssembly
+(`gasm.wasm`) in an interpreter, with no browser, and then relays the HLS with the headers the CDN wants. PPV's
+stream links only play from the IP that resolved them, which is why this happens on the TV
+(`tv-service/CouchTor.Core/Sports/PpvResolver.cs`). Streamed, the earlier source, closed on 2026-11-04. The laptop
+relay (`tools/live-relay.py`, which needs headless Chrome) is no longer needed.
+
+To use another relay instead, set `sportsRelay`, or configure a `…/live.m3u` playlist from that relay's server.
+The Sports screen reads `/sports.json` from it:
 
 ```json
 { "providers": [{ "name": "…", "status": "ok", "updatedAt": 0 }],

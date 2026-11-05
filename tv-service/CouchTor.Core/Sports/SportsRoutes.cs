@@ -16,7 +16,7 @@ namespace CouchTor.Sports
     public sealed class SportsRoutes : IHttpRoutes
     {
         readonly SportsCatalog catalog;
-        readonly StreamedResolver resolver;
+        readonly PpvResolver resolver;
         readonly StreamServer relay;
         readonly LogRing log;
         readonly Dictionary<string, (DateTime at, string link)> resolved = new Dictionary<string, (DateTime, string)>();
@@ -26,7 +26,7 @@ namespace CouchTor.Sports
         /// <summary>A resolved URL is reused for this long (they stay valid for hours); a refused one is resolved again.</summary>
         public TimeSpan Reuse = TimeSpan.FromMinutes(30);
 
-        public SportsRoutes(SportsCatalog catalog, StreamedResolver resolver, StreamServer relay, LogRing log)
+        public SportsRoutes(SportsCatalog catalog, PpvResolver resolver, StreamServer relay, LogRing log)
         {
             this.catalog = catalog;
             this.resolver = resolver;
@@ -74,10 +74,10 @@ namespace CouchTor.Sports
             }
             if (path.Length == 2 && path[0] == "sports" && path[1] == "resolve")
             {
-                // Diagnostics: resolve one Streamed source and report the time and host (never the signed URL).
+                // Diagnostics: resolve one PPV embed page (?embed=https://…/embed/…) and report the time and host (never the signed URL).
                 var started = DateTime.UtcNow;
-                var r = await Resolving(() => resolver.ResolveAsync(req.QueryAll("source").FirstOrDefault() ?? "admin",
-                    req.QueryAll("id").FirstOrDefault() ?? "", req.QueryAll("stream").FirstOrDefault() ?? "1", CancellationToken.None)).ConfigureAwait(false);
+                var embed = req.QueryAll("embed").FirstOrDefault() ?? throw new ServiceException(400, "embed= is required");
+                var r = await Resolving(() => resolver.ResolveAsync(embed, CancellationToken.None)).ConfigureAwait(false);
                 await HttpService.SendAsync(net, 200, "application/json", Json.Object().Add("ms", (long)(DateTime.UtcNow - started).TotalMilliseconds)
                     .Add("host", new Uri(r.Url).Host).ToString()).ConfigureAwait(false);
                 return true;
@@ -93,8 +93,7 @@ namespace CouchTor.Sports
                 lock (resolved)
                     if (!fresh && resolved.TryGetValue(feed.Id, out var hit) && DateTime.UtcNow - hit.at < Reuse && relay.Links.Get(hit.link) != null)
                         return hit.link;
-                var (source, id, streamNo) = await catalog.StreamAsync(feed, CancellationToken.None).ConfigureAwait(false);
-                var r = await Resolving(() => resolver.ResolveAsync(source, id, streamNo, CancellationToken.None)).ConfigureAwait(false);
+                var r = await Resolving(() => resolver.ResolveAsync(feed.Embed, CancellationToken.None)).ConfigureAwait(false);
                 var link = relay.Links.Add(r.Url, r.Headers);
                 lock (resolved)
                     resolved[feed.Id] = (DateTime.UtcNow, link);

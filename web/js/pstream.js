@@ -5,7 +5,7 @@
   var tvIp = '';
   try { tvIp = root.webapis.network.getIp() || ''; } catch (e) { /* desktop or unavailable network */ }
   var TV_SERVICE = !override && !!tvIp;
-  var TORRENT_SERVER = override ? override.replace(/\/+$/, '') : 'http://' + (tvIp || '127.0.0.1') + ':11470';
+  var TORRENT_SERVER = override ? override.replace(/\/+$/, '') : 'http://' + (tvIp || '127.0.0.1') + ':11471';
   // Films and episodes are found by the stream server in the same TV service (docs/streaming-provider.md);
   // COUCH_SECRETS.provider overrides it, and the desktop harness uses the laptop's CinePro.
   var providerOverride = root.COUCH_SECRETS && root.COUCH_SECRETS.provider;
@@ -34,7 +34,7 @@
         if (ok) return true;
         if (TV_SERVICE && !launched) {
           launched = true;
-          try { root.tizen.application.launch('CouchTor01.Service', function () {}, function () {}); }
+          try { root.tizen.application.launch('CouchTV001.Service', function () {}, function () {}); }
           catch (e) { /* service unavailable */ }
         }
         if (Date.now() >= deadline) return false;
@@ -211,6 +211,7 @@
     }).catch(function () {
       throw new Error("Can't reach the stream server");
     }).then(function (response) {
+      if (response.status === 404) return { sources: [] }; // the server's "no sources found"
       if (!response.ok) throw new Error('Provider HTTP ' + response.status);
       return response.json();
     }).then(function (body) {
@@ -218,7 +219,9 @@
         return (source.type === 'hls' || source.type === 'mp4') &&
           source.url && source.url.indexOf(PROVIDER + '/v1/proxy?') === 0;
       }).map(function (source) {
-        return { url: source.url.replace('/v1/proxy?', '/v1/proxy.m3u8?'), preferred: source.provider && source.provider.id === 'vixsrc' };
+        return { url: source.url.replace('/v1/proxy?', '/v1/proxy.m3u8?'), preferred: source.provider && source.provider.id === 'vixsrc',
+          subtitles: (source.subtitles || []).filter(function (t) { return t && t.url; })
+            .map(function (t) { return { label: t.label || t.language || 'Subtitles', lang: t.language || '', url: t.url }; }) };
       }).filter(function (source) {
         return (exclude || []).indexOf(source.url) < 0;
       }).sort(function (a, b) { return b.preferred - a.preferred; });
@@ -233,7 +236,7 @@
         // The first (preferred) source that has the wanted class, else the one closest below it.
         return sources.map(function (source, index) {
           return { url: source.url + (quality && quality !== 'best' ? '&quality=' + quality : ''),
-            headers: {}, qualities: all, source: source.url, kind: 'provider', stats: '',
+            headers: {}, qualities: all, source: source.url, kind: 'provider', stats: '', subtitles: source.subtitles,
             top: lists[index].filter(function (h) { return h <= want; })[0] || 0 };
         }).sort(function (a, b) { return b.top - a.top; });
       });
@@ -255,7 +258,7 @@
         return root.Addons.streams(Array.isArray(urls) ? urls : ['https://torrentio.strem.fun'],
           series ? 'series' : 'movie', item.imdbId + (series ? ':' + video.season + ':' + video.episode : ''));
       }).then(function (streams) {
-        return root.Addons.rank(streams.filter(function (s) { return s.playable && !(TV_SERVICE && s.needsTranscode); }), quality || 'best').slice(0, 5).map(function (s) {
+        return root.Addons.rank(streams.filter(function (s) { return s.playable && !(TV_SERVICE && s.needsTranscode); }), quality || 'best', item.originalLanguage).slice(0, 5).map(function (s) {
           var file = s.kind === 'torrent' ? root.Addons.torrentUrl(TORRENT_SERVER, s) : s.url;
           var url = s.kind === 'torrent' && s.needsTranscode ? torrentHls(file) : file;
           return { url: url, headers: {}, qualities: s.quality ? [s.quality] : [], source: url,
@@ -281,7 +284,7 @@
     return first.then(function (preferred) {
       var ready = untried(preferred);
       if (ready.length) return choose(ready, 1);
-      if (mode && onStatus) onStatus(mode === 'web' ? 'No web stream found. Trying torrents…' : 'No torrent found. Trying web streams…');
+      if (mode && onStatus) onStatus('Trying another source');
       return second.then(function (rest) {
         var candidates = untried(preferred.concat(rest));
         if (!candidates.length) throw providerError || new Error(exclude && exclude.length
@@ -290,7 +293,7 @@
       });
     }).then(function (chosen) {
       if (chosen.kind !== 'torrent') return chosen;
-      if (onStatus) onStatus('Starting torrent engine…');
+      if (onStatus) onStatus('');
       return waitForTorrent().then(function (ok) {
         if (onStatus) onStatus('');
         if (ok) return chosen;
@@ -300,7 +303,7 @@
           if (rest.length) return choose(rest, 1);
           return provider.then(function (streams) {
             var rest = untried(streams);
-            if (!rest.length) throw new Error('Torrent engine is not reachable');
+            if (!rest.length) throw new Error('Nothing could be started for this title');
             return choose(rest, 0);
           });
         });

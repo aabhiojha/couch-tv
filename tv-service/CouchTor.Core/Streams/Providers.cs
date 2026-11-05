@@ -69,10 +69,12 @@ namespace CouchTor.Streams
             var renditions = await upstream.GetAsync(master, headers, token).ConfigureAwait(false);
             if (renditions.Status != 200)
                 return none;
-            var heights = Height.Matches(renditions.Text().Replace("\r\n", "\n")).Cast<Match>().Select(m => int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)).ToList();
+            var text = renditions.Text();
+            var heights = Height.Matches(text.Replace("\r\n", "\n")).Cast<Match>().Select(m => int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)).ToList();
             if (heights.Count == 0)
                 return none;
-            return new[] { new Source { Url = master, Type = "hls", Quality = heights.Max() + "p", Headers = headers, ProviderId = Id, ProviderName = Name } };
+            return new[] { new Source { Url = master, Type = "hls", Quality = heights.Max() + "p", Headers = headers, ProviderId = Id, ProviderName = Name,
+                Subtitles = Hls.Subtitles(text, renditions.Url ?? master) } };
         }
     }
 

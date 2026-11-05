@@ -57,52 +57,67 @@ public class WasmHostTests
 
 public class SportsCatalogTests
 {
-    const string Schedule = "[" +
-        "{\"id\":\"willow\",\"title\":\"Willow Cricket\",\"category\":\"cricket\",\"date\":-3600000,\"sources\":[{\"source\":\"admin\",\"id\":\"admin-willow-cricket\"}]}," +
-        "{\"id\":\"m1\",\"title\":\"Arsenal vs Chelsea\",\"category\":\"football\",\"date\":1793050000000,\"poster\":\"/api/images/p.webp\",\"sources\":[{\"source\":\"admin\",\"id\":\"a1\"},{\"source\":\"hotel\",\"id\":\"h1\"}]}," +
-        "{\"id\":\"nfl\",\"title\":\"Jets vs Giants\",\"category\":\"american-football\",\"date\":1793050000000,\"sources\":[{\"source\":\"admin\",\"id\":\"n\"}]}," +
-        "{\"id\":\"empty\",\"title\":\"No sources\",\"category\":\"football\",\"date\":1793050000000,\"sources\":[]}]";
+    // PPV's /api/streams, trimmed to what SportsCatalog reads.
+    const string Schedule = "{\"success\":true,\"streams\":[" +
+        "{\"category\":\"Cricket\",\"streams\":[{\"id\":27493,\"name\":\"Willow\",\"always_live\":1,\"starts_at\":-3600,\"ends_at\":10800,\"locale\":\"en\"," +
+            "\"source_tag\":\"HD | Willow\",\"poster\":\"https://static.example/w.jpg\",\"iframe\":\"https://embed.example/embed/247-willow\"," +
+            "\"substreams\":[{\"id\":1027493,\"source_tag\":\"SD | Willow\",\"locale\":\"en\",\"iframe\":\"https://embed.example/embed/247-willow_540p\"}]}]}," +
+        "{\"category\":\"Football\",\"streams\":[{\"id\":31615,\"name\":\"Fenerbahce vs. Liverpool\",\"always_live\":0,\"starts_at\":1793050000,\"ends_at\":1793059000," +
+            "\"locale\":\"en-gb\",\"source_tag\":\"HD | TNT Sports 1\",\"iframe\":\"https://embed.example/embed/ucl/2026-11-04/fen-liv\"}," +
+            "{\"id\":31616,\"name\":\"No embed\",\"always_live\":0,\"starts_at\":1793050000,\"ends_at\":1793059000,\"iframe\":\"\"}," +
+            "{\"id\":31617,\"name\":\"Bad times\",\"always_live\":0,\"starts_at\":0,\"ends_at\":0,\"iframe\":\"https://embed.example/embed/x\"}]}," +
+        "{\"category\":\"American Football\",\"streams\":[{\"id\":1,\"name\":\"Jets vs Giants\",\"always_live\":0,\"starts_at\":1793050000,\"ends_at\":1793059000,\"iframe\":\"https://embed.example/embed/nfl\"}]}]}";
 
     [Fact]
-    public void KeepsCricketAndFootballWithTheirSources()
+    public void KeepsCricketAndFootballWithTheirFeeds()
     {
-        var items = SportsCatalog.Normalize(JsonReader.Parse(Schedule), "https://streamed.st");
-        Assert.Equal(new[] { "Willow Cricket", "Arsenal vs Chelsea" }, items.Select(i => i.Title));
-        Assert.Equal("channel", items[0].Kind); // a channel's date is 0 or, lately, -3600000
+        var items = SportsCatalog.Normalize(JsonReader.Parse(Schedule));
+        Assert.Equal(new[] { "Willow", "Fenerbahce vs. Liverpool" }, items.Select(i => i.Title));
+        Assert.Equal("channel", items[0].Kind);
         Assert.Equal(0, items[0].StartsAt);
+        Assert.Equal("https://static.example/w.jpg", items[0].Thumb);
+        Assert.Equal(new[] { "PPV · HD | Willow", "PPV · SD | Willow" }, items[0].Feeds.Select(f => f.Label)); // substreams are feeds too
         Assert.Equal("event", items[1].Kind);
-        Assert.Equal("https://streamed.st/api/images/p.webp", items[1].Thumb);
-        Assert.Equal(new[] { "Streamed · Admin", "Streamed · Hotel" }, items[1].Feeds.Select(f => f.Label));
-        Assert.Equal(SportsCatalog.FeedId("admin", "a1"), items[1].Feeds[0].Id);
+        Assert.Equal(1793050000000, items[1].StartsAt); // seconds to milliseconds
+        Assert.Equal(1793059000000, items[1].EndsAt);
+        Assert.Equal("en", items[1].Feeds[0].Language); // en-gb
+        Assert.Equal("https://embed.example/embed/ucl/2026-11-04/fen-liv", items[1].Feeds[0].Embed);
+        Assert.Equal(SportsCatalog.FeedId("ppv", "31615"), items[1].Feeds[0].Id);
         Assert.Matches("^s-[0-9a-f]{20}$", items[1].Feeds[0].Id);
-        Assert.Throws<InvalidDataException>(() => SportsCatalog.Normalize(JsonReader.Parse("{}"), ""));
+        Assert.Throws<InvalidDataException>(() => SportsCatalog.Normalize(JsonReader.Parse("[]")));
         Assert.Equal("", SportsCatalog.Language("Main"));
         Assert.Equal("hi", SportsCatalog.Language("Hindi"));
     }
 
     [Fact]
-    public async Task ServesTheCatalogFromTheFirstHostThatAnswersAndPicksACommentary()
+    public void AnEmbedUrlGivesItsHostAndSlug()
+    {
+        Assert.Equal(("embed.example", "ucl/2026-11-04/fen-liv"), PpvResolver.Parse("https://embed.example/embed/ucl/2026-11-04/fen-liv"));
+        Assert.Equal(("embed.example", "247-willow"), PpvResolver.Parse("https://embed.example/embed/247-willow"));
+        Assert.Throws<ServiceException>(() => PpvResolver.Parse("https://embed.example/watch/x"));
+        Assert.Throws<ServiceException>(() => PpvResolver.Parse("http://embed.example/embed/x"));
+    }
+
+    [Fact]
+    public async Task ServesTheCatalogWithPlayUrls()
     {
         var stub = new StubUpstream
         {
-            Respond = r => Task.FromResult(r.RequestUri.AbsoluteUri switch
-            {
-                "https://streamed.st/api/matches/all" => StubUpstream.Text("", status: HttpStatusCode.BadGateway),
-                "https://streamed.pk/api/matches/all" => StubUpstream.Text(Schedule, "application/json"),
-                "https://streamed.pk/api/stream/admin/a1" => StubUpstream.Text("[{\"embedUrl\":\"https://embed.st/embed/admin/a1/1\",\"language\":\"Spanish\"}," +
-                    "{\"embedUrl\":\"https://embed.st/embed/admin/a1/2\",\"language\":\"English\"}]", "application/json"),
-                _ => StubUpstream.Text("", status: HttpStatusCode.NotFound),
-            })
+            Respond = r => Task.FromResult(r.RequestUri.AbsoluteUri == "https://api.ppv.st/api/streams"
+                ? StubUpstream.Text(Schedule, "application/json") : StubUpstream.Text("", status: HttpStatusCode.NotFound))
         };
         var catalog = new SportsCatalog(new Upstream(stub) { Attempts = 1 }, new LogRing());
-        var json = JsonReader.Parse(await catalog.JsonAsync("http://tv:11470", CancellationToken.None));
+        var json = JsonReader.Parse(await catalog.JsonAsync("http://tv:11471", CancellationToken.None));
         var items = (List<object>)JsonReader.Get(json, "items");
         Assert.Equal(2, items.Count);
         var stream = ((List<object>)JsonReader.Get(items[1], "streams"))[0];
-        Assert.Equal("http://tv:11470/sports/play/" + SportsCatalog.FeedId("admin", "a1") + ".m3u8", JsonReader.Str(stream, "url"));
-        Assert.Equal("ok", JsonReader.Str(((List<object>)JsonReader.Get(json, "providers"))[0], "status"));
-        var feed = await catalog.FeedAsync(SportsCatalog.FeedId("admin", "a1"), CancellationToken.None);
-        Assert.Equal(("admin", "a1", "2"), await catalog.StreamAsync(feed, CancellationToken.None)); // English over Spanish
+        var id = SportsCatalog.FeedId("ppv", "31615");
+        Assert.Equal("http://tv:11471/sports/play/" + id + ".m3u8", JsonReader.Str(stream, "url"));
+        Assert.Equal("en", JsonReader.Str(stream, "language"));
+        Assert.Equal(1793059000000.0, JsonReader.Get(items[1], "endsAt"));
+        var provider = ((List<object>)JsonReader.Get(json, "providers"))[0];
+        Assert.Equal(("PPV", "ok"), (JsonReader.Str(provider, "name"), JsonReader.Str(provider, "status")));
+        Assert.Equal("https://embed.example/embed/ucl/2026-11-04/fen-liv", (await catalog.FeedAsync(id, CancellationToken.None)).Embed);
         Assert.Null(await catalog.FeedAsync("s-unknown", CancellationToken.None));
     }
 
@@ -129,12 +144,12 @@ public class SportsCatalogTests
         var stub = new StubUpstream { Respond = r => Task.FromResult(StubUpstream.Text(Schedule, "application/json")) };
         var catalog = new SportsCatalog(new Upstream(stub) { Attempts = 1 }, new LogRing());
         Assert.Equal("none", catalog.Status.status);
-        Assert.Equal("Willow Cricket", (await catalog.TestItemAsync(CancellationToken.None)).Title);
+        Assert.Equal("Willow", (await catalog.TestItemAsync(CancellationToken.None)).Title);
         Assert.Equal("ok", catalog.Status.status);
 
         // A resolver that can't get its module records the failure for Settings.
-        var resolver = new StreamedResolver(new LogRing(), new StubUpstream { Respond = r => Task.FromResult(StubUpstream.Text("", status: HttpStatusCode.NotFound)) });
-        await Assert.ThrowsAnyAsync<Exception>(() => resolver.ResolveAsync("admin", "a1", "1", CancellationToken.None));
+        var resolver = new PpvResolver(new LogRing(), new StubUpstream { Respond = r => Task.FromResult(StubUpstream.Text("", status: HttpStatusCode.NotFound)) });
+        await Assert.ThrowsAnyAsync<Exception>(() => resolver.ResolveAsync("https://embed.example/embed/247-willow", CancellationToken.None));
         Assert.NotNull(resolver.ErrorAt);
         Assert.Contains("404", resolver.Error);
         Assert.Null(resolver.OkAt);
@@ -144,8 +159,8 @@ public class SportsCatalogTests
 public class SportsScoresTests
 {
     // ESPN's scoreboard header, trimmed to what SportsScores reads.
-    const string Cricket = "{\"sports\":[{\"leagues\":[{\"events\":[" +
-        "{\"status\":\"in\",\"date\":\"2026-10-26T10:00:00Z\",\"fullStatus\":{\"summary\":\"India A lead by 284 runs\"},\"competitors\":[" +
+    const string Cricket = "{\"sports\":[{\"leagues\":[{\"slug\":\"8044\",\"events\":[" +
+        "{\"id\":\"1001\",\"status\":\"in\",\"date\":\"2026-10-26T10:00:00Z\",\"fullStatus\":{\"summary\":\"India A lead by 284 runs\"},\"competitors\":[" +
         "{\"displayName\":\"New Zealand A\",\"abbreviation\":\"NZ-A\",\"score\":\"317\",\"order\":2,\"logo\":\"https://a/nz.png\"}," +
         "{\"displayName\":\"India A\",\"abbreviation\":\"IND-A\",\"score\":\"113 & 488/8 (119 ov)\",\"order\":1,\"logo\":\"https://a/ind.png\"}]}," +
         "{\"status\":\"in\",\"date\":\"2026-10-26T12:00:00Z\",\"fullStatus\":{\"summary\":\"Australia need 40 runs\"},\"competitors\":[" +
@@ -163,11 +178,13 @@ public class SportsScoresTests
     public void MatchesListingsToLiveScoresByBothTeams()
     {
         var games = SportsScores.Parse(JsonReader.Parse(Cricket), false).Concat(SportsScores.Parse(JsonReader.Parse(Football), true)).ToList();
-        Assert.Equal(3, games.Count); // the upcoming game has no score yet
-        var india = SportsScores.Match("India vs Australia, 3rd T20I", At("2026-10-26T12:00:00Z"), games);
+        Assert.Equal(4, games.Count);
+        Assert.Null(games[2].Score); // the upcoming game has no score yet
+        Assert.Equal(("cricket", "8044", "1001"), (games[0].Sport, games[0].League, games[0].Event));
+        var india = SportsScores.Match("India vs Australia, 3rd T20I", At("2026-10-26T12:00:00Z"), games).Score;
         Assert.Equal("IND 182/4 (20 ov) · AUS 143/6 (17 ov)", india.Line); // not India A's game
         Assert.Equal("Australia need 40 runs", india.Summary);
-        var football = SportsScores.Match("Arsenal FC vs Chelsea", At("2026-10-26T16:00:00Z"), games);
+        var football = SportsScores.Match("Arsenal FC vs Chelsea", At("2026-10-26T16:00:00Z"), games).Score;
         Assert.Equal("ARS 2 – 1 CHE · 67'", football.Line); // home team first, whichever side the title lists
         Assert.Equal(new[] { "https://a/che.png", "https://a/ars.png" }, football.Crests);
         Assert.Null(SportsScores.Match("Arsenal vs Chelsea", At("2026-10-28T16:00:00Z"), games)); // another day's fixture
@@ -212,9 +229,9 @@ public class SportsRelayTests : IDisposable
         });
         var upstream = new Upstream(stub) { Attempts = 1 };
         streams = new StreamServer(new SourceFinder(new IStreamProvider[0], new LogRing()), upstream, new LogRing());
-        live = streams.Links.Add("https://lb1.example/secure/old/playlist.m3u8", StreamedResolver.StreamHeaders());
+        live = streams.Links.Add("https://lb1.example/secure/old/playlist.m3u8", PpvResolver.StreamHeaders("embed.st"));
         var route = new PlayRoute { Relay = streams, Link = () => live,
-            Refresh = () => fresh = streams.Links.Add("https://lb1.example/secure/new/playlist.m3u8", StreamedResolver.StreamHeaders()) };
+            Refresh = () => fresh = streams.Links.Add("https://lb1.example/secure/new/playlist.m3u8", PpvResolver.StreamHeaders("embed.st")) };
         service = new HttpService(new FakeBackend(), new LogRing(), new Routes(streams, route));
         service.Start(IPAddress.Loopback, 0);
         baseUrl = "http://127.0.0.1:" + service.Port;

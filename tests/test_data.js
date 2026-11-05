@@ -27,7 +27,7 @@ const PStream = {
 };
 const images = []; // PStream.images calls
 function load() {
-  const ctx = { window: {}, PStream, localStorage, console, Date: TestDate, JSON, Math, Object, Promise, String, isFinite, parseInt, setTimeout, clearTimeout, fetch: url => Promise.resolve({ ok: true, text: () => Promise.resolve(fixtures[url] || '') }) };
+  const ctx = { window: {}, PStream, localStorage, console, Date: TestDate, JSON, Math, Object, Promise, URL, String, isFinite, parseInt, setTimeout, clearTimeout, fetch: url => Promise.resolve({ ok: true, text: () => Promise.resolve(fixtures[url] || '') }) };
   vm.runInNewContext(source, ctx);
   return ctx.window.Data;
 }
@@ -83,9 +83,10 @@ eq(Data.recentSearches(), ['Q5', 'q9', 'q8', 'q7', 'q6', 'q4', 'q3', 'q2']);
 
 Data.setSetting('subtitles', true);
 assert.strictEqual(Data.settings().autoplayNext, true);
-assert.strictEqual(Data.settings().sourceOrder, 'addons-first');
-Data.setSetting('sourceOrder', 'provider-first');
-assert.strictEqual(load().settings().sourceOrder, 'provider-first');
+assert.strictEqual(Data.settings().sourceOrder, 'provider-first');
+assert.strictEqual(Data.settings().askSource, false);
+Data.setSetting('sourceOrder', 'addons-first');
+assert.strictEqual(load().settings().sourceOrder, 'addons-first'); // the v2 migration runs once
 assert(changes > 0);
 
 // Everything survives a relaunch.
@@ -140,6 +141,11 @@ console.log('ok');
   assert.strictEqual((await D.loadSubtitles('complete')).length, 1);
   assert.strictEqual((await D.loadSubtitles('noNewline')).length, 1);
   assert.strictEqual((await D.loadSubtitles('cut')).length, 0);
+  // A web stream's HLS subtitle playlist: its segments are fetched and joined.
+  fixtures['http://tv/sub.m3u8'] = '#EXTM3U\n#EXTINF:10,\nseg0.vtt\n#EXTINF:10,\nhttp://tv/seg1.vtt\n#EXT-X-ENDLIST';
+  fixtures['http://tv/seg0.vtt'] = 'WEBVTT\n\n00:01.0 --> 00:02.0\none\n';
+  fixtures['http://tv/seg1.vtt'] = 'WEBVTT\n\n00:11.0 --> 00:12.0\ntwo\n';
+  eq((await D.loadSubtitles('http://tv/sub.m3u8')).map(c => c.text), ['one', 'two']);
   console.log('ok (subtitles)');
 })().catch(e => { console.error(e); process.exit(1); });
 

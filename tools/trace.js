@@ -11,6 +11,7 @@ const SCENARIOS = {
   'tab bar': ["Shell.go('home')", [U, R, R, R, R, L, L, L, L, D]],
   'movies grid': ["Shell.go('movies')", [D, D, D, D, D, D, R, R, U, U, U, U]],
   idle: ["Shell.go('home')", []], // nothing pressed for 4 s: should cost nothing
+  'match page': ["Shell.go('match',{item:{id:'qa',kind:'result',title:'Como vs Manchester United',sport:'Football',startsAt:Date.parse('2026-10-21T16:45Z'),streams:[],score:{state:'post',line:'COMO 4 – 1 MAN',summary:'',crests:[]},espn:{sport:'soccer',league:'uefa.champions',event:'401915395'}}})", [D, D, D, D, D, D, U, U, U, U, U, U]],
 };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
@@ -35,7 +36,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   if (css) await run(`(function(){var s=document.createElement('style');s.textContent=${JSON.stringify(css)};document.head.appendChild(s);})()`);
   const [setup, keys] = SCENARIOS[scenario];
   await run(setup);
-  await sleep(3000);
+  await sleep(scenario === 'match page' ? 6000 : 3000); // the match page waits on ESPN
   await send('LayerTree.enable');
   await sleep(500);
   await send('Tracing.start', { categories: 'devtools.timeline,disabled-by-default-devtools.timeline,cc,gpu,blink.image_decode' + (process.env.INVALIDATIONS ? ',disabled-by-default-devtools.timeline.invalidationTracking' : ''), transferMode: 'ReportEvents' });

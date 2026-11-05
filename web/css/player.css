@@ -269,11 +269,49 @@
 }
 @keyframes player-spin { to { transform: rotate(360deg); } }
 
-#player .player-center { display: none; position: absolute; left: 0; top: 400px; width: 1920px; text-align: center; }
+/* Before the first frame, the way Netflix, Apple TV and Disney+ do it: the title's art dimmed, the logo centred,
+   one line of context and a progress ring; the art fades into the first frame instead of cutting. */
+#player .player-art, #player .player-shade {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+  opacity: 0; visibility: hidden; transition: opacity 600ms ease-out, visibility 0s linear 600ms;
+}
+#player.player-starting .player-shade { opacity: 1; visibility: visible; transition: opacity 200ms ease-out; }
+#player.player-starting .player-art-on { opacity: 1; visibility: visible; transform: scale(1); transition: opacity 700ms ease-out, transform 12s ease-out; }
+#player .player-art { background: #000 center / cover no-repeat; transform: scale(1.08); }
+#player .player-shade { background: radial-gradient(ellipse at center, rgba(0,0,0,.55), rgba(0,0,0,.85) 70%), rgba(0,0,0,.25); }
+#player .player-center { display: none; position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
 #player.player-loading .player-center { display: block; }
-#player .player-center .loader-track { width: 320px; margin-top: 0; }
-#player .player-center-text { margin-top: 34px; font-size: 38px; font-weight: 700; }
-#player .player-center-title { margin-top: 12px; color: rgba(235,235,245,.62); font-size: 29px; }
+#player .player-load {
+  position: absolute; left: 360px; top: 0; width: 1200px; height: 1080px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+}
+#player .player-load-logo { display: none; max-width: 620px; max-height: 220px; filter: drop-shadow(0 6px 30px rgba(0,0,0,.6)); }
+#player .player-load-has-logo .player-load-logo { display: block; }
+#player .player-load-has-logo .player-load-title { display: none; }
+#player .player-load-title { font-size: 76px; font-weight: 800; line-height: 1.05; letter-spacing: -1.5px; text-shadow: 0 4px 24px rgba(0,0,0,.6); }
+#player .player-load-meta { margin-top: 28px; color: rgba(235,235,245,.72); font-size: 29px; font-weight: 500; }
+#player .player-load-meta:empty { display: none; }
+#player .player-ring { position: relative; width: 84px; height: 84px; margin-top: 56px; }
+#player .player-ring svg { display: block; width: 84px; height: 84px; transform: rotate(-90deg); }
+#player .player-ring circle { fill: none; stroke-width: 5; }
+#player .player-ring-track { stroke: rgba(255,255,255,.16); }
+#player .player-ring-arc { stroke: #fff; stroke-linecap: round; stroke-dasharray: 276.46; stroke-dashoffset: 207.3; transition: stroke-dashoffset 600ms ease-out; }
+#player .player-ring:not(.player-ring-known) svg { animation: player-ring-spin 1s linear infinite; }
+@keyframes player-ring-spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
+#player .player-ring-pct { position: absolute; left: 0; top: 0; width: 84px; line-height: 84px; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#player .player-center-text { min-height: 34px; margin-top: 24px; color: rgba(235,235,245,.7); font-size: 26px; font-weight: 500; }
+/* Buffering mid-film keeps the picture: the card sits over a light shade without the art. */
+#player.player-loading:not(.player-starting) .player-center { background: rgba(0,0,0,.45); }
+
+/* Age rating, top left for a few seconds after the first frame. */
+#player .player-advisory {
+  position: absolute; left: 96px; top: 84px; display: flex; align-items: center;
+  padding-left: 22px; border-left: 4px solid var(--accent, #fff);
+  opacity: 0; transform: translateX(-16px); transition: opacity 500ms ease-out, transform 500ms ease-out;
+}
+#player .player-advisory-on { opacity: 1; transform: translateX(0); }
+#player .player-advisory-rating { font-size: 34px; font-weight: 700; text-shadow: 0 2px 12px rgba(0,0,0,.7); }
+#player.player-shown .player-advisory { opacity: 0; }
 
 #player .player-buffer {
   display: none;
