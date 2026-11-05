@@ -225,3 +225,16 @@
 .nav-side .settings-track { padding-top:60px; }
 .nav-side .search-screen { padding-top:60px; }
 .nav-side .browse-screen { padding-left:30px; }
+/* First run without a TMDB key: where to get one, and a hex keypad to type it. */
+.setup-screen { display:flex; align-items:center; justify-content:center; }
+.setup-copy { width:1100px; text-align:center; }
+.setup-title { margin:0 0 22px; font-size:57px; font-weight:700; letter-spacing:-.5px; }
+.setup-body { max-width:900px; margin:0 auto 44px; color:var(--muted); font-size:30px; line-height:1.4; }
+.setup-field { display:flex; align-items:center; justify-content:center; height:92px; margin:0 auto; width:900px; border-radius:16px; background:rgba(255,255,255,.1); font:600 38px/1 Inter,monospace; letter-spacing:2px; font-variant-numeric:tabular-nums; }
+.setup-caret { width:3px; height:44px; margin-left:4px; background:#0a84ff; }
+.setup-count { margin:12px 0 34px; color:var(--muted); font-size:24px; }
+.setup-key-row { display:flex; justify-content:center; margin-bottom:10px; }
+.setup-key { display:flex; align-items:center; justify-content:center; width:76px; height:72px; margin:0 5px; border-radius:12px; background:rgba(255,255,255,.07); font-size:32px; font-weight:500; }
+.setup-key-wide { width:200px; font-size:27px; }
+.setup-key.focused { background:var(--accent); color:#000; }
+.setup-message { min-height:40px; margin-top:28px; font-size:27px; }

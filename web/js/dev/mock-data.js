@@ -369,6 +369,9 @@
     myList: function () {
       return saved.slice();
     },
+    tmdbKey: function () { return prefs.tmdbKey || 'demo'; },
+    setTmdbKey: function (v) { prefs.tmdbKey = v; notify(); },
+    needsSetup: function () { return /[?&]setup/.test(location.search) && !prefs.tmdbKey; },
     serverStatus: function () { return Promise.resolve({ ok: true, host: 'Demo server', ms: 1 }); },
     settings: function () {
       return Object.assign({ sourceOrder: 'addons-first', askSource: true, lastSource: 'torrent', navClicks: true }, prefs);

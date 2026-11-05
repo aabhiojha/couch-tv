@@ -84,6 +84,8 @@
           help: 'Home rows and title logos are kept on the TV for faster start-up. Refresh them if something looks out of date; they reload on your next visit to Home.' }
       ] },
       { title: 'Connection', items: [
+        { key: 'tmdb', type: 'action', title: 'TMDB key',
+          help: 'The free API key that brings in films, series and artwork from TMDB. Press OK to type a new one.' },
         { key: 'server', type: 'action', title: 'Stream server',
           help: 'Quick start titles are found by this TV. If titles won’t play, press OK to test it again.' },
         { key: 'sports', type: 'action', title: 'Sports streams',
@@ -169,6 +171,9 @@
           row.el.classList.toggle('is-on', !!settings[def.key]);
         } else if (def.type === 'choice') {
           value = def.options[optionIndex(def, settings[def.key])].label;
+        } else if (def.key === 'tmdb') {
+          var k = data.tmdbKey ? data.tmdbKey() : '';
+          value = k ? '••••' + k.slice(-4) : 'Not set';
         } else if (def.key === 'followed') {
           var follows = settings.followed || [];
           value = follows.length ? String(follows.length) : 'None';
@@ -279,6 +284,7 @@
       if (def.key === 'server' || def.key === 'torrent') { checkServer(def.key); return; }
       if (def.key === 'sports') { checkSports(true); return; }
       if (def.key === 'followed') { manageFollowed(); return; }
+      if (def.key === 'tmdb') { shell.go('setup'); return; }
       if (def.key === 'health') {
         data.clearErrors();
         shell.toast('Error list cleared');
