@@ -13,8 +13,8 @@ asking you only for the parts on the TV and your Samsung sign-in.
   [open an issue](https://github.com/aabhiojha/couch-tv/issues) to say how it went on yours.
 - A computer on the same network as the TV, running Linux or macOS. (Windows may work through WSL; untested.)
 - A free [Samsung account](https://account.samsung.com) and a free [TMDB account](https://www.themoviedb.org/signup).
-- Your own sources: Stremio add-ons, a stream server, or M3U playlists. Couch TV ships none.
-  See [Sources](docs/streaming-provider.md).
+- Nothing else. Out of the box, films and series play from built-in web sources and the Torrentio add-on (torrents play on the TV), and live sports from PPV and iptv-org's free channels. Your own add-ons, stream server or
+  playlists are optional; see [Sources](docs/streaming-provider.md).
 
 **Why your own certificate?** Samsung only lets a TV run a developer app signed with a certificate that
 lists that TV's unique ID (its DUID). Nobody else's certificate will work on your TV, and you should never
@@ -82,7 +82,7 @@ Open `web/js/secrets.js` in a text editor:
 
 - `tmdbKey`: your TMDB API key, from [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api)
   (request a free developer key; the "API Key" is the short one). Without it, every row says "Couldn't load".
-- Your sources (all optional, but without `addons` or a `provider`, playing a title says "No sources set up"):
+- Your own sources (all optional; without them Couch TV uses its built-in ones):
   - `addons`: Stremio add-on links, the same `…/manifest.json` links you'd paste into Stremio. Torrent
     results download and play on the TV; direct links play as they are.
   - `provider`: the address of a stream server you run on your network that speaks
@@ -127,7 +127,7 @@ edit `web/js/secrets.js` and run the install command again.
 | "Failed to install Tizen application" with no reason | The certificate profile name doesn't match: use `couch` or pass `PROFILE=<name>` |
 | "Skipping TV torrent service" | The .NET 8 SDK isn't at `~/.dotnet`: see step 1.4, or ignore it if you don't want torrents |
 | Every row says "Couldn't load" | `tmdbKey` is missing or wrong in `web/js/secrets.js`, or the TV has no internet |
-| Titles say "No sources set up" | Add `addons` or a `provider` to `web/js/secrets.js` and install again |
+| A title finds nothing to play | The built-in sources don't have it, or can't be reached from your network. Add a Stremio add-on in `web/js/secrets.js` and install again |
 | The app disappeared | Developer Mode was turned off or the TV was reset: turn it on again and install again |
 
 Still stuck? [Open an issue](https://github.com/aabhiojha/couch-tv/issues) with your TV model, its year, and

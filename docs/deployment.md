@@ -63,6 +63,6 @@ $SDB -s $S forward --remove tcp:NNNNN                  # clean up afterwards
 | Install fails with a certificate error | Certificate expired, or this TV's DUID isn't in it: recreate the profile with the TV connected |
 | App opens but every row says "Couldn't load" | `js/secrets.js` missing from the package, or no internet |
 | App disappeared | Developer Mode was turned off or the TV was reset: turn it on again and reinstall |
-| Titles say "No sources set up" | Add `addons` or a `provider` to `web/js/secrets.js` and install again; see [Sources](streaming-provider.md) |
+| A title finds nothing to play | The built-in sources don't have it: add a Stremio add-on to `web/js/secrets.js` and install again; see [Sources](streaming-provider.md) |
 | Titles say "Can't reach the stream server" | Your stream server isn't running, or its address changed |
 | Media keys do nothing outside the player | `tv.inputdevice` privilege missing from `config.xml`, or key registration failed |

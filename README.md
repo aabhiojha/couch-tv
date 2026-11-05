@@ -10,7 +10,7 @@ A good-looking app for watching films, series and live sports on a Samsung smart
 - Browse trending films and series, search, and keep a My List.
 - Pick up where you left off, with subtitles and the next episode playing on its own.
 - Scores, fixtures and tables for football and cricket, including the Nepal Premier League.
-- Plays from sources you add: Stremio add-ons, your own stream server, or an IPTV playlist.
+- Works as soon as it's installed. Add your own Stremio add-ons, stream server or IPTV playlist if you like.
 
 ## Install
 
@@ -55,9 +55,11 @@ Developers: the [docs](docs/README.md) explain how it's built and tested. Pull r
 
 ## Disclaimer
 
-Couch TV is only a player. It has no content and no sources, and isn't affiliated with Samsung, TMDB or
-Stremio. You're responsible for the sources you add.
+Couch TV hosts no content. Out of the box it finds streams on third-party sites and torrents it doesn't
+control; those may not be licensed where you live, and using them is your responsibility. Couch TV isn't
+affiliated with Samsung, TMDB, Stremio or any of those sources.
 
-[MIT licence](LICENSE). Torrents via [MonoTorrent](https://github.com/alanmcgovern/monotorrent) (MIT). Film and
-series data from [TMDB](https://www.themoviedb.org); this product uses the TMDB API but is not endorsed or
-certified by TMDB.
+[MIT licence](LICENSE), except `tv-service/CouchTor.Core/Streams/`, which is
+[PolyForm Noncommercial](tv-service/CouchTor.Core/Streams/LICENSE) (no commercial use).
+Torrents via [MonoTorrent](https://github.com/alanmcgovern/monotorrent) (MIT). Film and series data from
+[TMDB](https://www.themoviedb.org); this product uses the TMDB API but is not endorsed or certified by TMDB.
