@@ -90,7 +90,7 @@ logo movement/reset and the no-logo/no-screen cases. TV navigation and glass ali
 
 ## Sources
 
-Couch TV ships no stream sources; `web/js/secrets.js` sets them (copy `web/js/secrets.example.js`).
+Couch TV has built-in sources (the TV service's stream server, Torrentio, PPV); `web/js/secrets.js` overrides them (copy `web/js/secrets.example.js`).
 [Sources](streaming-provider.md) describes each setting and the stream server and sports relay APIs.
 
 - `addons: ['<add-on URL>', …]`: Stremio add-ons asked for streams (a base URL or a `…/manifest.json`
