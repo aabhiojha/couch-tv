@@ -168,6 +168,7 @@
     });
   }
 
+  if (PStream.tvService()) Espn.useService(PStream.tvService());
   function applyMotion() { document.documentElement.classList.toggle('no-motion', !!Data.settings().noMotion); }
   applyMotion();
   Data.onChange(applyMotion);

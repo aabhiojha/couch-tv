@@ -339,8 +339,8 @@ async function checkPlaybackWiring() {
       ({ appControl: { data: [{ key: 'resume', value: [film.id] }] } }) }) } },
     Shell: { init() {}, go: (name, params) => { went = [name, params.id, params.autoplay]; },
       choose: options => { asked = options; return Promise.resolve(1); } },
-    Player: { open: value => { opts = value; }, isOpen: () => false },
-    PStream: { startTorrentService() { started = true; }, scrape: (item, video, quality, tried, onStatus, mode) => {
+    Player: { open: value => { opts = value; }, isOpen: () => false }, Espn: { useService() {} },
+    PStream: { tvService: () => '', startTorrentService() { started = true; }, scrape: (item, video, quality, tried, onStatus, mode) => {
       scrapedMode = mode;
       onStatus('Starting torrent engine…');
       return new Promise(resolve => { finishStream = () => { onStatus(''); resolve({ kind: 'torrent', stats: 'http://test/stats', remaining: 1, source: 'torrent' }); }; });

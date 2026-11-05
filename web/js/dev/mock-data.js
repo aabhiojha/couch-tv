@@ -97,6 +97,7 @@
     progress = {},
     saved = [],
     sportsSaved = [],
+    sample = null,
     recent = [],
     listeners = [];
   var prefs = { autoplayNext: true, subtitles: false, subtitleSize: 'medium' },
@@ -370,15 +371,7 @@
     },
     serverStatus: function () { return Promise.resolve({ ok: true, host: 'Demo server', ms: 1 }); },
     settings: function () {
-      return {
-        autoplayNext: prefs.autoplayNext,
-        subtitles: prefs.subtitles,
-        sourceOrder: prefs.sourceOrder || 'addons-first',
-        askSource: prefs.askSource !== false,
-        lastSource: prefs.lastSource || 'torrent',
-        subtitleSize: prefs.subtitleSize,
-        navClicks: prefs.navClicks !== false
-      };
+      return Object.assign({ sourceOrder: 'addons-first', askSource: true, lastSource: 'torrent', navClicks: true }, prefs);
     },
     // Features served by the TV (its service, the Home launcher) have nothing behind them in the preview.
     newEpisodes: function () { return Promise.resolve([]); },
@@ -425,7 +418,16 @@
       recent = [];
     },
     // Synthetic Sports fixtures for navigation and failure-state checks; no playable media is implied.
+    // A real catalog saved from the TV (curl http://<tv>:11471/sports.json > web/js/dev/sports-sample.json; not
+    // committed) previews the screen with real listings; without one the synthetic fixtures below are used.
     sports: function () {
+      if (sample !== false) return (sample || (sample = fetch('js/dev/sports-sample.json').then(function (r) {
+        if (!r.ok) throw new Error('no sample');
+        return r.json();
+      }).then(function (d) {
+        var c = Live.readCatalog(d);
+        return { items: c.items, providers: c.providers, stale: false, scheduleError: false, updatedAt: Date.now(), message: '' };
+      }))).catch(function () { sample = false; return Data.sports(); });
       var now = Date.now(), hour = 3600000;
       function event(id, title, sport, starts, ends, languages) {
         return { id: id, title: title, kind: 'event', sport: sport, startsAt: now + starts * hour,

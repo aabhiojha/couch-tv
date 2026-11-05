@@ -94,3 +94,7 @@ catalog, marked stale, for six hours.
 
 `GET /sports/health[?test=1]` is optional and feeds Settings › Sports streams; without it that row says the
 relay is down.
+
+`GET /sports/board?sport=soccer|cricket&date=YYYYMMDD` is optional too. It returns ESPN's scoreboard for that
+(US Eastern) day, cut to the fields the Sports guide reads. The TV's own service has it, and keeps each board
+for a minute. Without it the app asks ESPN directly.

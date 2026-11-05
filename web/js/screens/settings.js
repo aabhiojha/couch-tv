@@ -42,11 +42,36 @@
         { key: 'subtitleSize', type: 'choice', options: SIZES, title: 'Subtitle size', preview: true,
           help: 'How large captions appear on screen.' }
       ] },
-      { title: 'Display', items: [
+      { title: 'Appearance', items: [
+        { key: 'navLayout', type: 'choice', title: 'Navigation bar', options: [
+          { value: 'top', label: 'Top' }, { value: 'side', label: 'Side' }
+        ], help: 'Top runs the tabs across the top of the screen, as on Apple TV; it slides away as you scroll. Side keeps them down the left edge as icons that widen with their names when you press Left.' },
+        { key: 'accent', type: 'choice', title: 'Focus colour', swatch: true, options: [
+          { value: 'white', label: 'White' }, { value: 'ice', label: 'Ice blue' }, { value: 'mint', label: 'Mint' },
+          { value: 'gold', label: 'Gold' }, { value: 'rose', label: 'Rose' }, { value: 'lilac', label: 'Lilac' }
+        ], help: 'The colour of whatever is selected: tabs, cards, rows and buttons. Every choice keeps dark text readable on it.' },
+        { key: 'clock', type: 'choice', title: 'Clock', options: [
+          { value: 'auto', label: 'TV setting' }, { value: '12', label: '12-hour' }, { value: '24', label: '24-hour' }
+        ], help: 'How kick-off and start times are written: 8:45 PM or 20:45.' },
+        { key: 'startScreen', type: 'choice', title: 'Open on', options: [
+          { value: 'home', label: 'Home' }, { value: 'live', label: 'Sports' }, { value: 'movies', label: 'Movies' }, { value: 'series', label: 'Series' }
+        ], help: 'The screen Couch TV opens on when it starts.' },
         { key: 'noMotion', type: 'toggle', title: 'Remove animations',
           help: 'Turns off fades, slides and zooms; focus and screens change instantly. Can feel snappier on a slow TV. Loading indicators still move.' },
         { key: 'navClicks', type: 'toggle', title: 'Navigation clicks',
           help: 'A soft click as focus moves, a duller one at the end of a row, and a tap when you select, as on Apple TV.' }
+      ] },
+      { title: 'Sports', items: [
+        { key: 'sportsShown', type: 'choice', title: 'Sports shown', options: [
+          { value: 'both', label: 'Cricket & football' }, { value: 'cricket', label: 'Cricket' }, { value: 'football', label: 'Football' }
+        ], help: 'Which sports the Sports screen lists: games, tables and channels.' },
+        { key: 'sportsStart', type: 'choice', title: 'Sports opens on', options: [
+          { value: 'today', label: 'Today' }, { value: 'live', label: 'Live' }
+        ], help: 'Today lists every game of the day, live ones first in focus. Live lists only what is being played now.' },
+        { key: 'hideScores', type: 'toggle', title: 'Hide scores',
+          help: 'Keeps results and live scores off the lists so a game you recorded or missed isn’t spoiled. A match page still shows them.' },
+        { key: 'followed', type: 'action', title: 'Followed competitions',
+          help: 'Followed competitions come first in Sports, after the Nepal Premier League. Follow one in Sports by pressing OK on its name; press OK here to stop following one.' }
       ] },
       { title: 'Library', items: [
         { key: 'history', type: 'action', title: 'Clear watch history', confirm: 'Your Continue Watching row and resume points will be cleared.',
@@ -91,6 +116,7 @@
         row.appendChild(text);
         var value = kit.el('div', 'setting-value');
         if (def.type === 'toggle') value.appendChild(kit.el('span', 'setting-switch'));
+        if (def.swatch) value.appendChild(kit.el('span', 'setting-swatch'));
         var valueText = kit.el('span', 'setting-value-text');
         value.appendChild(valueText);
         row.appendChild(value);
@@ -143,6 +169,10 @@
           row.el.classList.toggle('is-on', !!settings[def.key]);
         } else if (def.type === 'choice') {
           value = def.options[optionIndex(def, settings[def.key])].label;
+        } else if (def.key === 'followed') {
+          var follows = settings.followed || [];
+          value = follows.length ? String(follows.length) : 'None';
+          detail = follows.map(function (f) { return f.title; }).join(', ').slice(0, 80);
         } else if (def.key === 'history') {
           detail = plural(data.continueWatching().length, 'title', 'titles') + ' in Continue Watching';
         } else if (def.key === 'mylist') {
@@ -170,6 +200,7 @@
           row.el.classList.toggle('is-down', errors.length > 0);
           row.el.classList.toggle('is-ok', !errors.length);
         }
+        if (def.swatch) row.value.style.setProperty('--swatch', { white: '#fff', ice: '#9fdcff', mint: '#8ff0c4', gold: '#ffd66b', rose: '#ffb3c1', lilac: '#d4c2ff' }[settings[def.key]] || '#fff');
         row.el.classList.toggle('setting-link', def.type === 'action' && def.key !== 'server' && def.key !== 'torrent' && def.key !== 'sports' && def.key !== 'health');
         row.valueText.textContent = value;
         row.detail.textContent = detail;
@@ -247,6 +278,7 @@
     function run(def) {
       if (def.key === 'server' || def.key === 'torrent') { checkServer(def.key); return; }
       if (def.key === 'sports') { checkSports(true); return; }
+      if (def.key === 'followed') { manageFollowed(); return; }
       if (def.key === 'health') {
         data.clearErrors();
         shell.toast('Error list cleared');
@@ -269,6 +301,19 @@
         });
       }
       updateValues();
+    }
+    function manageFollowed() {
+      var follows = data.settings().followed || [];
+      if (!follows.length) { shell.toast('In Sports, press OK on a competition’s name to follow it'); return; }
+      shell.choose({ title: 'Followed competitions', body: 'Choose one to stop following it.',
+        choices: follows.map(function (f) { return f.title + '  ·  ' + (f.sport || ''); }) }).then(function (index) {
+        if (index === false) return;
+        var gone = follows[index];
+        data.setSetting('followed', follows.filter(function (f) { return f !== gone; }));
+        shell.toast('Stopped following ' + gone.title);
+        updateValues();
+        if (follows.length > 1) manageFollowed();
+      });
     }
     function handleKey(code) {
       if (code === 10009) return false;

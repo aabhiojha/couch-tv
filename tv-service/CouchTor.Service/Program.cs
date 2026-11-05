@@ -52,7 +52,7 @@ namespace CouchTor
                 var catalog = new Sports.SportsCatalog(upstream, Log, scores: new Sports.SportsScores(upstream, Log));
                 var sports = new Sports.SportsRoutes(catalog, new Sports.PpvResolver(Log, handler), streams, Log);
                 _ = catalog.WarmAsync();
-                http = new HttpService(engine, Log, new Sports.Routes(streams, sports));
+                http = new HttpService(engine, Log, new Sports.Routes(streams, sports, new Sports.SportsBoards(upstream, Log)));
                 http.Start(IPAddress.Any, Port);
                 Log.Add("listening on :" + Port + ", .NET " + Environment.Version + ", " + Environment.ProcessorCount + " cpus, data " + data);
                 _ = engine.StartAsync();

@@ -61,7 +61,8 @@ window.Data = (function () {
 
   function loadLibrary() {
     var lib = { progress: {}, items: {}, myList: [], recent: [], sports: [],
-                settings: { autoplayNext: true, subtitles: false, subtitleSize: 'medium', quality: 'best', sourceOrder: 'provider-first', askSource: false, lastSource: 'web', noMotion: false, navClicks: true, sourcesV: 2 } };
+                settings: { autoplayNext: true, subtitles: false, subtitleSize: 'medium', quality: 'best', sourceOrder: 'provider-first', askSource: false, lastSource: 'web', noMotion: false, navClicks: true, sourcesV: 2,
+                  navLayout: 'top', accent: 'white', clock: 'auto', startScreen: 'home', sportsShown: 'both', sportsStart: 'today', hideScores: false, followed: [] } };
     try {
       var saved = JSON.parse(localStorage.getItem(LIBRARY_KEY));
       if (saved) {
